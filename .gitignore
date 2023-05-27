@@ -1,0 +1,3 @@
+venv/
+db.sqlite3
+poll4dates/.env
