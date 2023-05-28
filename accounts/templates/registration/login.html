@@ -1,6 +1,77 @@
-Login Template
-<form method="POST" action={% url "accounts:login" %}>
-    {% csrf_token %}
-    {{form}}
-    <button>Login</button>
-</form>
+{% extends 'base.html' %}
+{% load i18n %}
+{% comment %} {% load account socialaccount %} {% endcomment %}
+{% block title %}<title>Sign In</title>{% endblock %}
+{% block content %}
+<main>
+    <section class="inner-page pt-4 mt-5">
+        <div class="container col-md-12 mt-5">
+            <div class="shadow card mb-5 bg-white rounded col-md-4 mx-auto p-0">
+                <div class="card-header" style="background-color: #71c55d; color: white;">
+                    <h3 class="text-center">Sign In</h3>
+                </div>
+                <div class="card-body">
+
+                    {% comment %} {% get_providers as socialaccount_providers %} {% endcomment %}
+                    {% if socialaccount_providers %}
+                    {% comment %} <p>{% blocktrans with site.name as site_name %}Please sign in with one
+                        of your existing third party accounts. Or, <a href="{{ signup_url }}">sign up</a>
+                        for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
+
+                    <div class="text-center mb-5 mt-5">
+                        <ul class="pl-0" style="list-style-type: none;">
+                            {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+                        </ul>
+
+                        <div class="login-or text-center">--- {% trans 'or' %} ---</div>
+                    </div>
+
+                    {% include "socialaccount/snippets/login_extra.html" %} {% endcomment %}
+
+                    {% else %}
+                    <p>If you have not created an account yet, then please
+                        <a href="{% url 'accounts:register' %}">sign up</a> first.
+                    </p>
+                    {% endif %}
+                    <form class="login text-center" method="POST" action="{% url 'accounts:login' %}">
+                        {% csrf_token %}
+                        {% comment %} {% for error in form.non_field_errors %}
+                        <p style="color: red">{{ error|escape }}</p>
+                        {% endfor %} {% endcomment %}
+                        {% comment %} <div class="mb-3">
+                            <label class="form-label" for="id_login"><i class="bi bi-person"></i> Email</label>
+                            <input class="form-control" type="email" name="login" autocomplete="username" maxlength="150"
+                                required id="id_login">
+                            {% if form.errors and 'username' in form.errors %}
+                            {% for error in form.errors.username %}
+                            <p style="color: red">{{ error|escape }}</p>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="id_password"><i class="bi bi-lock"></i> Password</label>
+                            <input class="form-control" type="password" name="password" autocomplete="current-password"
+                                required id="id_password">
+                            {% if form.errors and 'password' in form.errors %}
+                            {% for error in form.errors.password %}
+                            <p style="color: red">{{ error|escape }}</p>
+                            {% endfor %}
+                            {% endif %}
+                        </div> {% endcomment %}
+                        {{form}}
+                        <button class="primaryAction btn-get-started mb-0 d-inline col-md-4" type="submit">
+                            Sign In
+                        </button>
+                        <br>
+                        <a class="button secondaryAction small text-black" href="/accounts/password/reset/">
+                            Forgot <span style="color:#71c55d">Password?</span>
+                        </a>
+                    </form>
+                </div>
+
+
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}
