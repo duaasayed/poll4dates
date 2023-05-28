@@ -1,0 +1,6 @@
+Register Template
+<form method="POST" action={% url "accounts:register" %}>
+    {% csrf_token %}
+    {{form}}
+    <button>Submit</button>
+</form>

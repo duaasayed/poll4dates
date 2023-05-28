@@ -1,0 +1,6 @@
+Login Template
+<form method="POST" action={% url "accounts:login" %}>
+    {% csrf_token %}
+    {{form}}
+    <button>Login</button>
+</form>
