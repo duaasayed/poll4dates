@@ -47,14 +47,14 @@
         <div class="container d-flex align-items-center justify-content-between">
 
             <div id="logo">
-                <h1><a href="{% url 'accounts:login' %}"><span>w</span>henSuits</a></h1>
+                <h1><a href="{% url 'account_login' %}"><span>w</span>henSuits</a></h1>
                 <!-- Uncomment below if you prefer to use an image logo -->
                 <!-- <a href="index.html"><img src="assets/img/logo.png" alt="" title="" /></a>-->
             </div>
 
             <nav id="navbar" class="navbar">
                 <ul>
-                    <li><a class="nav-link scrollto active" href="{% url 'accounts:login' %}">Home</a></li>
+                    <li><a class="nav-link scrollto active" href="{% url 'account_login' %}">Home</a></li>
                     <li><a class="nav-link scrollto" href="#get-started">How To</a></li>
                     <li><a class="nav-link scrollto" href="#features">Use Cases</a></li>
                     <li><a class="nav-link scrollto" href="#testimonials">Testimonials</a></li>
@@ -63,7 +63,7 @@
                     <li class="dropdown"><a href="#"><span>{{user.name}}</span> <i
                                 class="bi bi-chevron-down"></i></a>
                         <ul>
-                            <li><a class="nav-link scorllto" href="{% url 'accounts:login' %}">My Polls</a></li>
+                            <li><a class="nav-link scorllto" href="{% url 'account_login' %}">My Polls</a></li>
                             <li>
                                 <form method="post" action="/accounts/logout/" style="margin-left: 13px">
                                     {% csrf_token %}

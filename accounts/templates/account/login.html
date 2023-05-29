@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
-{% comment %} {% load account socialaccount %} {% endcomment %}
+{% load account socialaccount %}
 {% block title %}<title>Sign In</title>{% endblock %}
 {% block content %}
 <main>
@@ -12,9 +12,9 @@
                 </div>
                 <div class="card-body">
 
-                    {% comment %} {% get_providers as socialaccount_providers %} {% endcomment %}
+                    {% get_providers as socialaccount_providers %}
                     {% if socialaccount_providers %}
-                    {% comment %} <p>{% blocktrans with site.name as site_name %}Please sign in with one
+                    <p>{% blocktrans with site.name as site_name %}Please sign in with one
                         of your existing third party accounts. Or, <a href="{{ signup_url }}">sign up</a>
                         for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
 
@@ -26,24 +26,24 @@
                         <div class="login-or text-center">--- {% trans 'or' %} ---</div>
                     </div>
 
-                    {% include "socialaccount/snippets/login_extra.html" %} {% endcomment %}
+                    {% include "socialaccount/snippets/login_extra.html" %}
 
                     {% else %}
-                    <p>If you have not created an account yet, then please
-                        <a href="{% url 'accounts:register' %}">sign up</a> first.
+                    <p>{% blocktrans %}If you have not created an account yet, then please
+                        <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}
                     </p>
                     {% endif %}
-                    <form class="login text-center" method="POST" action="{% url 'accounts:login' %}">
+                    <form class="login text-center" method="POST" action="{% url 'account_login' %}">
                         {% csrf_token %}
-                        {% comment %} {% for error in form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
                         <p style="color: red">{{ error|escape }}</p>
-                        {% endfor %} {% endcomment %}
-                        {% comment %} <div class="mb-3">
+                        {% endfor %}
+                        <div class="mb-3">
                             <label class="form-label" for="id_login"><i class="bi bi-person"></i> Email</label>
-                            <input class="form-control" type="email" name="login" autocomplete="username" maxlength="150"
+                            <input class="form-control" type="email" name="login" autocomplete="email" maxlength="150"
                                 required id="id_login">
-                            {% if form.errors and 'username' in form.errors %}
-                            {% for error in form.errors.username %}
+                            {% if form.errors and 'email' in form.errors %}
+                            {% for error in form.errors.email %}
                             <p style="color: red">{{ error|escape }}</p>
                             {% endfor %}
                             {% endif %}
@@ -57,8 +57,8 @@
                             <p style="color: red">{{ error|escape }}</p>
                             {% endfor %}
                             {% endif %}
-                        </div> {% endcomment %}
-                        {{form}}
+                        </div>
+
                         <button class="primaryAction btn-get-started mb-0 d-inline col-md-4" type="submit">
                             Sign In
                         </button>

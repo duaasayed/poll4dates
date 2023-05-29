@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Signup" %}{% endblock %}
+
+{% block content %}
+<main>
+    <section class="inner-page pt-4 mt-5">
+        <div class="container col-md-12 mt-5">
+            <div class="shadow card mb-5 bg-white rounded col-md-4 mx-auto p-0">
+                <div class="card-body">
+                        <h1>{% trans "Sign Up" %}</h1>
+
+                    <p>{% blocktrans with provider_name=account.get_provider.name site_name=site.name %}You are about to use your {{provider_name}} account to login to
+                    {{site_name}}. As a final step, please complete the following form:{% endblocktrans %}</p>
+
+                    <form class="signup" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="id_name"><i class="bi bi-person"></i> Name: </label>
+                        <input type="text" value="{% if form.name.value %}{{form.name.value}}{% endif %}"
+                            name="name" id="id_name" class="form-control" required>
+                        {% if form.errors and 'name' in form.errors %}
+                        {% for error in form.errors.name %}
+                        <p style="color: red">{{ error|escape }}</p>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="id_email"><i class="bi bi-envelope-at"></i> E-mail: </label>
+                        <input type="email" value="{% if form.email.value %}{{form.email.value}}{% endif %}"
+                            name="email" id="id_email" class="form-control" required>
+                        {% if form.errors and 'email' in form.errors %}
+                        {% for error in form.errors.email %}
+                        <p style="color: red">{{ error|escape }}</p>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                    {% endif %}
+                    <button type="submit" class="btn-get-started col-md-4">Sign Up &raquo;</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+{% endblock %}
