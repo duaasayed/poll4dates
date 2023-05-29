@@ -34,12 +34,6 @@ class UserModelTest(TestCase):
         user = User.objects.create_user(**self.user_data)
         self.assertIsInstance(user, User)
 
-    def test_regular_user_cannot_be_initially_active(self):
-        with self.assertRaises(ValueError) as cm:
-            User.objects.create_user(**self.user_data, is_active=True)
-        exception = cm.exception
-        self.assertEquals(str(exception), 'Regular users must have is_active=False.')
-
     def test_str_representation(self):
         user = User.objects.create_user(**self.user_data)
         self.assertEquals(str(user), 'Test User')

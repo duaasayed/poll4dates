@@ -20,8 +20,6 @@ class UserManager(BaseUserManager):
             return ValueError("Regular users must have is_superuser=False.")
         if extra_fields.get("is_staff") == True:
             return ValueError("Regular users must have is_staff=False.")
-        if extra_fields.get("is_active") == True:
-            raise ValueError("Regular users must have is_active=False.")
 
         return self._create_user(name, email, password, **extra_fields)
  
@@ -47,8 +45,7 @@ class User(AbstractUser):
     last_name = None
     
     email = models.EmailField(max_length=250, null=False, unique=True)
-    name = models.CharField(max_length=50)
-    is_active = models.BooleanField(default=False)
+    name = models.CharField(max_length=225)
     
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["name"]
