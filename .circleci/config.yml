@@ -35,6 +35,8 @@ jobs:
   migrate:
     docker: 
       - image: cimg/python:3.11.3
+        environment:
+            SECRET_KET: 'ehekerr4r6tfjrybxvvwkeoeiyt54de9rfmegdvwwwokw'
     steps:
       - checkout
       - attach_workspace:
