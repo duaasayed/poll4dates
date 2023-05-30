@@ -1,8 +1,15 @@
 version: 2.1
 jobs:
-  build:
+  setup_environment:
     docker: 
       - image: cimg/python:3.11.3
+        environment:
+          DB_ENGINE: "django.db.backends.postgresql"
+          DB_HOST: localhost
+          DB_NAME: poll4dates
+          DB_USER: myuser
+          DB_PASSWORD: mypassword
+          DB_PORT: 5432
     steps:
       - checkout
       - run:
@@ -11,7 +18,19 @@ jobs:
             python3 -m venv venv
             source venv/bin/activate
             pip install -r requirements.txt
+  setup_database:
+    docker:
+      - image: cimg/go:1.17
+      - image: cimg/postgres:15.3
+        environment:
+            POSTGRES_USER: myuser
+            POSTGRES_PASSWORD: mypassword
+            POSTGRES_DB: poll4dates
+    steps:
+      - checkout
+
 workflows:
   default:
     jobs:
-      - build
+      - setup_environment
+      - setup_database
