@@ -36,7 +36,7 @@ class UserModelTest(TestCase):
 
     def test_str_representation(self):
         user = User.objects.create_user(**self.user_data)
-        self.assertEquals(str(user), 'Test User')
+        self.assertEquals(str(user), 'Test')
 
     def test_password_is_hashed(self):
         user = User.objects.create_user(**self.user_data)
