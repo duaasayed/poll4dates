@@ -43,6 +43,13 @@ jobs:
             DB_USER: myuser
             DB_PASSWORD: mypassword
             DB_PORT: 5432
+            GOOGLE_APP_CLIENT_ID: "172433149012-esq43qgp4i12be5p7tkmk6to33jsclv9.apps.googleusercontent.com"
+            GOOGLE_APP_SECRET: "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"
+            EMAIL_HOST: "smtp.gmail.com"
+            EMAIL_PORT: 587
+            EMAIL_USE_TLS: true
+            EMAIL_HOST_USER: "doaas0213@gmail.com"
+            EMAIL_HOST_PASSWORD: "gwfwnpzcyjmmhdqi"
     steps:
       - checkout
       - attach_workspace:
