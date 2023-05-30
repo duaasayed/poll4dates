@@ -36,7 +36,7 @@ jobs:
     docker: 
       - image: cimg/python:3.11.3
         environment:
-            SECRET_KET: 'ehekerr4r6tfjrybxvvwkeoeiyt54de9rfmegdvwwwokw'
+            SECRET_KEY: 'ehekerr4r6tfjrybxvvwkeoeiyt54de9rfmegdvwwwokw'
     steps:
       - checkout
       - attach_workspace:
