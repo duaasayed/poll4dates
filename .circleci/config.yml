@@ -59,4 +59,6 @@ workflows:
   default:
     jobs:
       - setup_environment
-      - setup_database
+      - setup_database:
+          requires:
+            - setup_environment
