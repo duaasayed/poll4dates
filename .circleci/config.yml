@@ -54,7 +54,12 @@ jobs:
           name: migrate db
           command: |
             source venv/bin/activate 
-            python3 manage.py migrate      
+            python3 manage.py migrate 
+      - run: 
+          name: test
+          command: |
+            source venv/bin/activate
+            python3 manage.py test     
 workflows:
   default:
     jobs:
