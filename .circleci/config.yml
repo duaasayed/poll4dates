@@ -37,6 +37,12 @@ jobs:
       - image: cimg/python:3.11.3
         environment:
             SECRET_KEY: 'ehekerr4r6tfjrybxvvwkeoeiyt54de9rfmegdvwwwokw'
+            DB_ENGINE: "django.db.backends.postgresql"
+            DB_HOST: localhost
+            DB_NAME: poll4dates
+            DB_USER: myuser
+            DB_PASSWORD: mypassword
+            DB_PORT: 5432
     steps:
       - checkout
       - attach_workspace:
