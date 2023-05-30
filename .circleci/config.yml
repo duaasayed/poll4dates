@@ -1,0 +1,62 @@
+version: 2.1
+jobs:
+  setup_environment:
+    docker: 
+      - image: cimg/python:3.11.3          
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command: |
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install -r requirements.txt
+      - persist_to_workspace:
+          root: .
+          paths:
+            - venv
+  test:
+    docker:
+      - image: cimg/python:3.11.3
+        environment:
+            SECRET_KEY: $SECRET_KEY
+            DB_ENGINE: $DB_ENGINE
+            DB_HOST: $DB_HOST
+            DB_NAME: $DB_NAME
+            DB_USER: $DB_USER
+            DB_PASSWORD: $DB_PASSWORD
+            DB_PORT: $DB_PORT
+            GOOGLE_APP_CLIENT_ID: ""
+            GOOGLE_APP_SECRET: ""
+            EMAIL_HOST: ""
+            EMAIL_PORT: 587
+            EMAIL_USE_TLS: true
+            EMAIL_HOST_USER: ""
+            EMAIL_HOST_PASSWORD: ""
+      - image: cimg/go:1.17
+      - image: cimg/postgres:15.3
+        environment:
+            POSTGRES_USER: myuser
+            POSTGRES_PASSWORD: mypassword
+            POSTGRES_DB: poll4dates
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: migrate db
+          command: |
+            source venv/bin/activate 
+            python3 manage.py migrate 
+      - run: 
+          name: Run tests
+          command: |
+            source venv/bin/activate
+            python3 manage.py test     
+workflows:
+  default:
+    jobs:
+      - setup_environment
+      - test:
+          requires:
+            - setup_environment
