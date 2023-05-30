@@ -42,4 +42,7 @@ workflows:
     jobs:
       - setup_environment
       - setup_database
-      - migrate
+      - migrate:
+          requires:
+            - setup_environment
+            - setup_database
