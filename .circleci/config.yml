@@ -24,16 +24,6 @@ jobs:
             - venv
   setup_database:
     docker:
-      - image: cimg/go:1.17
-      - image: cimg/postgres:15.3
-        environment:
-            POSTGRES_USER: myuser
-            POSTGRES_PASSWORD: mypassword
-            POSTGRES_DB: poll4dates
-    steps:
-      - checkout
-  migrate:
-    docker: 
       - image: cimg/python:3.11.3
         environment:
             SECRET_KEY: 'ehekerr4r6tfjrybxvvwkeoeiyt54de9rfmegdvwwwokw'
@@ -50,6 +40,12 @@ jobs:
             EMAIL_USE_TLS: true
             EMAIL_HOST_USER: "doaas0213@gmail.com"
             EMAIL_HOST_PASSWORD: "gwfwnpzcyjmmhdqi"
+      - image: cimg/go:1.17
+      - image: cimg/postgres:15.3
+        environment:
+            POSTGRES_USER: myuser
+            POSTGRES_PASSWORD: mypassword
+            POSTGRES_DB: poll4dates
     steps:
       - checkout
       - attach_workspace:
@@ -58,13 +54,9 @@ jobs:
           name: migrate db
           command: |
             source venv/bin/activate 
-            python3 manage.py migrate
+            python3 manage.py migrate      
 workflows:
   default:
     jobs:
       - setup_environment
       - setup_database
-      - migrate:
-          requires:
-            - setup_environment
-            - setup_database
