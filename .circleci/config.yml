@@ -28,9 +28,18 @@ jobs:
             POSTGRES_DB: poll4dates
     steps:
       - checkout
+  migrate:
+    docker: 
+      - image: cimg/python:3.11.3
+    steps:
+      - checkout
+      - run:
+          name: migrate db
+          command: python3 manage.py migrate
 
 workflows:
   default:
     jobs:
       - setup_environment
       - setup_database
+      - migrate
