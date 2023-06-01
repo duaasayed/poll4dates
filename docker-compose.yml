@@ -1,0 +1,22 @@
+version: '3.5'
+
+services:
+  backend:
+    build: .
+    environment:
+      - DB_HOST=database
+    command: sh -c "python3 manage.py migrate && python3 manage.py createsuperuser --noinput --name=Admin --email=admin@example.com && python3 manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./:/poll4dates
+    ports:
+      - target: 8000
+        published: 8000
+    depends_on:
+      - database
+
+  database:
+    image: postgres
+    env_file:
+      - ./poll4dates/.env
+    volumes:
+      - ~/data:/var/lib/postgresql/data
