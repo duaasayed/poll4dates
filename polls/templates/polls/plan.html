@@ -1,0 +1,361 @@
+{% extends 'polls/base.html' %}
+{% block title %} <title>Plan Event</title>{% endblock %}
+{% load static %}
+{% comment %} {% load events_tags %} {% endcomment %}
+{% block content %}
+<form method="POST" action="{% url 'polls:plan' %}" id="event-form">
+    {% csrf_token %}
+    <main>
+        <section class="inner-page pt-4 mt-5">
+            <div class="container col-md-12 mt-5">
+                <div class="shadow p-3 mb-5 bg-white rounded row col-md-9 mx-auto">
+                    <div class="d-flex align-items-center justify-content-between col-md-9">
+                        <div class="p-3 col-md-12">
+                            <h4 class="mb-3">Event Details</h4>
+                            <div class="row align-items-center justify-content-between">                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="bi bi-bookmark" style="color: #71c55d;"></i>
+                                            {{form.fields.name.label}}
+                                        </label>
+
+                                        <input type="text" name="name"
+                                            value="{% if form.name.value %} {{form.name.value}} {% endif %}"
+                                            class="form-control" required>
+                                        {% if form.errors and 'name' in form.errors%}
+                                            {% for error in form.errors.name %}
+                                                <p style="color: red">{{error|escape}}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label"><i class="bi bi-person" style="color: #71c55d"></i>
+                                            {{form.fields.organizer.label}}
+                                        </label>
+                                        <input type="text" name="organizer"
+                                            value="{% if form.name.value %} {{form.name.value}} {% elif request.user.is_authenticated %} {{request.user.name}} {% endif %}"
+                                            class="form-control d-inline" required>
+                                        {% if form.errors and 'organizer' in form.errors%}
+                                            {% for error in form.errors.organizer %}
+                                                <p style="color: red">{{error|escape}}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label"><i class="bi bi-calendar-event"
+                                                style="color: #71c55d;"></i> 
+                                                {{form.fields.rsvp_by.label}}
+                                        </label>
+
+                                        <input type="datetime-local" name="rsvp_by"
+                                            value="{% if form.rsvp_by.value %} {{form.rsvp_by.value}} {% endif %}"
+                                            class="form-control" required>
+                                        {% if form.errors and 'rsvp_by' in form.errors%}
+                                            {% for error in form.errors.rsvp_by %}
+                                                <p style="color: red">{{error|escape}}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-5">
+                                    <div class="mb-3 mt-md-0">
+                                        <label class="form-label"><i class="bi bi-geo-alt-fill"
+                                                style="color: #71c55d"></i>
+                                            {{form.fields.location.label}}
+                                        </label>
+
+                                        <input type="text" name="location"
+                                            value="{% if form.location.value %} {{form.location.value}} {% endif %}"
+                                            class="form-control">
+                                        {% if form.errors and 'location' in form.errors%}
+                                            {% for error in form.errors.location %}
+                                                <p style="color: red">{{error|escape}}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label"><i class="bi bi-justify-left"
+                                                style="color: #71c55d;"></i>
+                                            {{form.fields.description.label}}
+                                        </label>
+                                        <textarea rows="5" class="form-control" cols="36"
+                                            name="description">{% if form.description.value %} {{form.description.value}} {% endif %}</textarea>
+                                        {% if form.errors and 'description' in form.errors%}
+                                            {% for error in form.errors.description %}
+                                                <p style="color: red">{{error|escape}}</p>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mt-3 mt-md-0">
+                        <button id="eventbtn" class="btn-get-started scrollto float-end">Create Poll
+                            <i class="bi bi-caret-right-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="shadow p-3 mb-5 bg-white rounded row col-md-9 mx-auto">
+                <div class="col-md-8">
+                    <p>Select dates to suggest for your event</p>
+                    <div id='calendar'></div>
+                </div>
+                <div class="col-md-3 ml-md-5 mt-5 mt-md-0">
+                    <p>You are suggesting:</p>
+                    {% if request.session.timeslots %}
+                        <div id="session-timeslots">
+                            {% for timeslot in request.session.timeslots %}
+                                <div class="card p-3 d-flex flex-row justify-content-start mb-3 rounded" style="border: 1px solid #71c55d;">
+                                    <div class="col-md-11">
+                                        <p class="d-none">{{timeslot}}</p>
+                                        {% comment %} {% with timeslot|split:',' as strs %}
+                                        <p>{{strs.0|str_date:'%Y-%m-%d'|date:'D, M j'}}</p>
+                                        <span>{{strs.1|str_date:'%H:%M'|date:"P"}} - {{strs.2|str_date:'%H:%M'|date:"P"}}</span>
+                                        {% endcomment %}
+                                    </div>
+                                    {% comment %}
+                                    <button id="{{strs.0}},{{strs.1}}" onclick="removeEvent(this)" type="button"
+                                        class="close">&times;</button>
+                                    {% endwith %} {% endcomment %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div id="new-timeslots">
+
+                    </div>
+                </div>
+                <div class="modal fade show" id="eventModal" tabindex="-1" role="dialog"
+                    aria-labelledby="eventModalLabel" aria-hidden="true">
+                    <div class="modal-dialog shadow" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background-color: #71c55d;">
+                                <h5 class="modal-title text-white" id="exampleModalLabel">
+                                    Add New Event
+                                </h5>
+                                <button id="modalClose1" type="button" class="close" data-dismiss="modal"
+                                    aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class=" modal-body">
+                                <p id="raw-date" class="text-center d-none"></p>
+                                <p id="date" class="text-center"></p>
+                                <p style="color: red;" id="error"></p>
+                                <div class="row justify-content-between">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Start Date:</label>
+                                        <input type="time" id="start" class="form-control">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">End Date:</label>
+                                        <input type="time" id="end" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="model-footer">
+                                <div class="col-md-12 text-center">
+                                    <button id="addTime" class="btn-get-started scrollto" data-dismiss="modal"
+                                        aria-label="Close">
+                                        Add time
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</form>
+{% endblock content %}
+
+{% block extrascripts%}
+<script src="{% static 'fullcalendar/dist/index.global.js' %}"></script>
+<script>
+    var events = []
+    var d = document.getElementById('date')
+    var raw_d = document.getElementById('raw-date')
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        selectable: true,
+        selectMirror: true,
+        dateClick: function (info) {
+            console.log(info.dateStr)
+            var options = { weekday: 'short', month: 'short', day: 'numeric' };
+            var datef = new Date(info.dateStr);
+            d.innerText = datef.toLocaleDateString("en-US", options)
+            raw_d.innerText = info.dateStr
+            var modal = document.getElementById('eventModal')
+            modal.style.display = 'block'
+            const el1 = document.querySelector('[data-date="' + raw_d.innerText + '"]');
+            calendar.unselect()
+        },
+        validRange: {
+            start: Date.now(),
+        },
+        editable: true,
+        eventClick: function (info) {
+            info.event.remove()
+            var btn = document.getElementById(info.event.startStr + ',' + info.event.title)
+            btn.parentElement.remove()
+        },
+        eventDidMount: (cell) => {
+            console.log(cell)
+            var checkbox = document.createElement('input')
+            checkbox.type = 'checkbox'
+            checkbox.setAttribute('id', 'date-' + calendar.getDate())
+            checkbox.style.marginLeft = '0px'
+            cell.el.children[0].children[0].append(checkbox)
+        }
+
+    })
+    document.addEventListener('DOMContentLoaded', function () {
+        calendar.render();
+        var session_timeslots = document.getElementById('session-timeslots')
+        if (session_timeslots && session_timeslots.children) {
+            const form = document.getElementById('event-form')
+            for (var i = 0; i < session_timeslots.children.length; i++) {
+                var date = session_timeslots.children[i].children[0].children[0].innerText.split(",")[0]
+                var start = session_timeslots.children[i].children[0].children[0].innerText.split(",")[1]
+                var end = session_timeslots.children[i].children[0].children[0].innerText.split(",")[2]
+                const newEvent = {
+                    'title': start,
+                    'start': date,
+                }
+                events.push(newEvent)
+                calendar.addEvent(newEvent)
+
+                const timeSlot = document.createElement('input')
+                timeSlot.type = 'hidden'
+                timeSlot.setAttribute('name', 'timeSlots[]')
+                timeSlot.setAttribute('id', 'timeslots')
+                timeSlot.setAttribute('value', date + ',' + start + ',' + end)
+                form.append(timeSlot)
+            }
+
+        }
+        const closeBtn1 = document.getElementById('modalClose1');
+        const addTimeBtn = document.getElementById('addTime');
+        const eventbtn = document.getElementById('eventbtn')
+        const removeEvent = document.getElementById('removeEvent')
+
+        closeBtn1.addEventListener('click', () => {
+            const eventModal = document.getElementById('eventModal')
+            eventModal.style.display = 'none';
+        });
+        addTimeBtn.addEventListener('click', e => {
+            e.preventDefault()
+            var start = document.getElementById('start').value
+            var end = document.getElementById('end').value
+            if (start || end) {
+                const newEvent = {
+                    'title': start,
+                    'start': raw_d.innerText,
+                }
+                events.push(newEvent)
+                calendar.addEvent(newEvent)
+                console.log(calendar.getEvents())
+                const eventModal = document.getElementById('eventModal')
+                eventModal.style.display = 'none';
+            }
+
+            const form = document.getElementById('event-form')
+            const timeSlot = document.createElement('input')
+            timeSlot.type = 'hidden'
+            timeSlot.setAttribute('name', 'timeSlots[]')
+            timeSlot.setAttribute('id', 'timeslots')
+            timeSlot.setAttribute('value', raw_d.innerText + ',' + start + ',' + end)
+            form.append(timeSlot)
+
+            const new_timeslots = document.getElementById('new-timeslots')
+            const newtimeslot = document.createElement('div')
+            newtimeslot.setAttribute('class', 'card p-3 mb-3 rounded d-flex flex-row')
+            newtimeslot.setAttribute('style', 'border: 1px solid #71c55d;')
+
+            const newdate = document.createElement('p')
+            newdate.innerText = d.innerText
+
+            const newtime = document.createElement('span')
+            var start_hours = start.split(':')[0]
+            var start_min = start.split(':')[1]
+
+            var end_hours = end.split(':')[0]
+            var end_min = end.split(':')[1]
+
+            var first = ''
+            var last = ''
+
+            if (start_hours == 00) {
+                first = '12:' + start_min + ' a.m.'
+            } else if (start_hours == 12) {
+                first = '12:' + start_min + ' p.m.'
+            } else if (start_hours < 12) {
+                first = start_hours + ':' + start_min + ' a.m.'
+            } else {
+                first = start_hours % 12 + ':' + start_min + ' p.m.'
+            }
+
+            if (end_hours == 00) {
+                last = '12:' + end_min + ' a.m.'
+            } else if (end_hours == 12) {
+                last = '12:' + end_min + ' p.m.'
+            } else if (end_hours < 12) {
+                last = end_hours + ':' + end_min + ' a.m.'
+            } else {
+                last = end_hours % 12 + ':' + end_min + ' p.m.'
+            }
+
+            newtime.innerText = first + ' - ' + last
+
+            var closebtn = document.createElement('button')
+            closebtn.setAttribute('class', 'close')
+            closebtn.setAttribute('type', 'button')
+            closebtn.setAttribute('id', raw_d.innerText + ',' + start)
+            closebtn.setAttribute('onclick', 'removeEvent(this)')
+            closebtn.innerHTML = '&times;'
+
+            var div = document.createElement('div')
+            div.setAttribute('class', 'col-md-11')
+            div.append(newdate)
+            div.append(newtime)
+
+            newtimeslot.append(div)
+
+            newtimeslot.append(closebtn)
+
+            new_timeslots.append(newtimeslot)
+        });
+        eventbtn.addEventListener('click', e => {
+            e.preventDefault()
+            if (!document.getElementById('timeslots')) {
+                alert('Please, select date to suggest for your event.')
+            } else {
+                const form = document.getElementById('event-form')
+                form.submit()
+            }
+        });
+
+    });
+
+    function removeEvent(element) {
+        var date = element.id.split(',')[0]
+        var start = element.id.split(',')[1]
+        calendar.getEvents().forEach(event => {
+            if (event.title == start && event.startStr == date) {
+                event.remove()
+                element.parentElement.remove()
+            }
+        });
+    }
+
+</script>
+{% endblock extrascripts %}
