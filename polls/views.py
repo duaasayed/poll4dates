@@ -29,5 +29,5 @@ class PollList(ListView):
 
     def get_queryset(self) -> QuerySet[Any]:
         current_user = self.request.user
-        queryset = Poll.objects.select_related('event').filter(user=current_user)
+        queryset = Poll.objects.filter(creator=current_user)
         return queryset
