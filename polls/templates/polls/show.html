@@ -1,9 +1,10 @@
 {% extends 'polls/base.html' %}
 {% block title %} <title>{{poll}}</title>{% endblock %}
 {% load static %}
+{% load polls_tags %}
 {% block content %}
 <main id="main">
-    <section class="inner-page pt-4 mt-5">
+    <section class="inner-page pt-4 mt-5" style="height: 1500px">
         <div class="container col-md-12 mt-5">
             <div class="row justify-content-between col-md-9 p-0 mx-auto mt-5 position-relative">
                 <div class="col-md-7 shadow rounded mt-5 p-5">
@@ -19,10 +20,10 @@
                                     class="p-0 mb-0">
                                     {% if not request.GET.id %}
                                         <li id="editTitle" style="border: 1px solid white" class="p-3">
-                                            <i class="bi bi-tag-fill"></i> Edit Title
+                                            <i class="bi bi-tag-fill"></i> Edit Name
                                         </li>
                                         <li id="editDetails" style="border: 1px solid white" class="p-3">
-                                            <i class="bi bi-justify-left"></i> Edit Description
+                                            <i class="bi bi-justify-left"></i> Edit Details
                                         </li>
                                         <li id="editLocation" style="border: 1px solid white;" class="p-3">
                                             <i class="bi bi-geo-alt-fill"></i> Update Location
@@ -36,7 +37,7 @@
                                         <li id="editRsvp" style="border: 1px solid white" class="p-3">
                                             <i class="bi bi-calendar2-check-fill"></i> Update RSVP Date
                                         </li>
-                                        {% if event.poll_ended %}
+                                        {% if poll.ended %}
                                             <li id="openPoll" style="border: 1px solid white" class="p-3">
                                                 <i class="bi bi-calendar2-check-fill"></i> Re-open Poll
                                             </li>
@@ -80,7 +81,43 @@
                     {% endif %}
                 </div>
             </div>
+            
+            <div class="modal fade show" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background-color: #71c55d; color: white;">
+                            <h5 class="modal-title text-white" id="editModalLabel"></h5>
+                            <button id="closeModal" type=" button" class="close" data-dismiss="modal"
+                                aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form id="edit-form" method="post" action="edit/">
+                            <div class="modal-body" id="modalContent">
+                                {% csrf_token %}
+                                <input type="hidden" name="_method" value="put">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" id="changes" class="btn btn-get-started"></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 </main>
 {% endblock content %}
+
+{% block extrascripts %}
+    <script>
+        var event_name = "{{poll.event_name}}";
+        var event_details = "{{poll.event_details}}";
+        var event_location = "{{poll.event_location}}";
+        var event_rsvp = "{{poll.rsvp_by}}";
+        var slots = '{{poll.time_slots.all|queryset_as_json}}';
+        var delete_url = "{% url 'polls:delete' poll.pk %}";
+    </script>
+    <script src="{% static 'events/js/poll_settings.js' %}"></script>
+{% endblock extrascripts %}
