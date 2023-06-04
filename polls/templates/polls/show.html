@@ -1,0 +1,86 @@
+{% extends 'polls/base.html' %}
+{% block title %} <title>{{poll}}</title>{% endblock %}
+{% load static %}
+{% block content %}
+<main id="main">
+    <section class="inner-page pt-4 mt-5">
+        <div class="container col-md-12 mt-5">
+            <div class="row justify-content-between col-md-9 p-0 mx-auto mt-5 position-relative">
+                <div class="col-md-7 shadow rounded mt-5 p-5">
+                    <div class="row justify-content-between">
+                        <div class="col-9">
+                            <h4>{{poll}}</h4>
+                            <p>Organizer: {{poll.event_organizer}}</p>
+                        </div>
+                        <div class="col-2">
+                            <div id="options-div" class="d-none position-absolute"
+                                style="z-index: 100; background-color: white; margin-left: -180px; margin-right: 10px;">
+                                <ul style="list-style-type: none; width: 250px; border: 1px solid #92d283;"
+                                    class="p-0 mb-0">
+                                    {% if not request.GET.id %}
+                                        <li id="editTitle" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-tag-fill"></i> Edit Title
+                                        </li>
+                                        <li id="editDetails" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-justify-left"></i> Edit Description
+                                        </li>
+                                        <li id="editLocation" style="border: 1px solid white;" class="p-3">
+                                            <i class="bi bi-geo-alt-fill"></i> Update Location
+                                        </li>
+                                        <li id="addDate" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-calendar-plus-fill"></i> Add Date/Time
+                                        </li>
+                                        <li id="removeDate" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-calendar-minus-fill"></i> Remove Date/Time
+                                        </li>
+                                        <li id="editRsvp" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-calendar2-check-fill"></i> Update RSVP Date
+                                        </li>
+                                        {% if event.poll_ended %}
+                                            <li id="openPoll" style="border: 1px solid white" class="p-3">
+                                                <i class="bi bi-calendar2-check-fill"></i> Re-open Poll
+                                            </li>
+                                            {% else %}
+                                                <li id="closePoll" style="border: 1px solid white" class="p-3">
+                                                    <i class="bi bi-dash-circle"></i> Close Poll now
+                                                </li>
+                                        {% endif %}
+                                        <li id="deletePoll" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-trash3-fill"></i> Delete Poll
+                                        </li>
+                                            {% else %}
+                                            <li id="changeName" style="border: 1px solid white" class="p-3">
+                                                <i class="bi bi-person"></i> Change name
+                                            </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <button style="border: none; background-color: white;">
+                                <i class="bi bi-gear" style="color: #71c55d; font-size: 30px;" id="options"></i>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    {% if poll.event_details%}
+                        <p><i class="bi bi-justify-left" style="color: #71c55d;"></i> {{poll.event_details}}</p>
+                    {% endif %}
+            
+                    <p><i class="bi bi-geo-alt-fill" style="color: #71c55d"></i> {{poll.event_location}}</p>
+                    {% if poll.ended %}
+                        <p class="text-center p-1" style="background-color:#D3D3D3">
+                            <i class="bi bi-circle-fill" style="color:#696969"></i>
+                            This poll closed on <strong>{{poll.rsvp_by}}</strong>
+                        </p>
+                        {% else %}
+                            <p>
+                                <i class="bi bi-circle-fill" style="color:#71c55d"></i>
+                                Last day to RSVP is <strong>{{poll.rsvp_by}}</strong>
+                            </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}

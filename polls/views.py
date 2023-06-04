@@ -2,7 +2,7 @@ from typing import Any
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from .models import Poll
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.views.generic.edit import FormView
 from .forms import PollCreationForm
 from django.shortcuts import redirect
@@ -31,3 +31,10 @@ class PollList(ListView):
         current_user = self.request.user
         queryset = Poll.objects.filter(creator=current_user)
         return queryset
+    
+
+class PollDetail(DetailView):
+    model = Poll
+    template_name='polls/show.html'
+    context_object_name = 'poll'
+

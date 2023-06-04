@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
     
 
 class Poll(models.Model):
@@ -12,6 +13,10 @@ class Poll(models.Model):
 
     def __str__(self):
         return self.event_name
+    
+    @property
+    def ended(self):
+        return self.rsvp_by < timezone.now()
 
 
 class TimeSlot(models.Model):
