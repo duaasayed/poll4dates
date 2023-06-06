@@ -80,6 +80,23 @@
                             </p>
                     {% endif %}
                 </div>
+
+                <div class="mt-5 p-3 pb-4 rounded col-md-4 ml-md-5 mr-0 shadow" style="box-sizing: border-box;">
+                    <h3 class="text-center"><i class="bi bi-chat-fill" style="color: #71c55d;"></i> Message</h3>
+                    <div class="chat-container mb-5" style="height: 205px;">
+                        <div id="messages" class="d-flex flex-column-reverse"
+                            style="min-height: 200px; max-height: 200px; overflow-y: scroll; position: relative;">
+                        </div>
+                        <div class="row justify-content-start align-items-center">
+                            <textarea id="messageContent" class="col-9 ml-3 form-control" rows="2"
+                                placeholder="Leave a message"></textarea>
+                            <button id="message" class="col-2" style="border: none; background-color: white;">
+                                <i class="bi bi-send-fill fa-2x" style="color: #71c55d;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
             </div>
             
             <div class="modal fade show" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
@@ -118,6 +135,36 @@
         var event_rsvp = "{{poll.rsvp_by}}";
         var slots = '{{poll.time_slots.all|queryset_as_json}}';
         var delete_url = "{% url 'polls:delete' poll.pk %}";
+        var poll_pk = "{{poll.pk}}";
+        var messagebtn = document.getElementById('message');
+        var messages = document.getElementById('messages');
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const chatSocket = new WebSocket(
+                `ws://${window.location.host}/ws/chat/${poll_pk}/`
+            );
+
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                messages.insertAdjacentHTML('afterbegin', `<div>
+                    <p>${data.message}</p>
+                </div>`)
+                console.log(data);
+            };
+
+            chatSocket.onClose = function(e) {
+                console.log("Error, connection closed");
+            };
+
+            messagebtn.addEventListener('click', function () {
+                const messageInput = document.getElementById('messageContent')
+                const text_message = messageInput.value;
+                chatSocket.send(JSON.stringify({
+                    'message': text_message
+                }));
+                messageInput.value = ''
+            })
+        });
     </script>
     <script src="{% static 'events/js/poll_settings.js' %}"></script>
 {% endblock extrascripts %}
