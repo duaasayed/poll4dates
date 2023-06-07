@@ -42,6 +42,7 @@
                             <li>
                                 <form method="post" action="{% url 'account_logout' %}" style="margin-left: 13px">
                                     {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}"/>
                                     <button style="border: none; background-color: white;">
                                         <i class="bi bi-box-arrow-right ml-0" style="margin-right: 5px;"></i>
                                         Sign out
