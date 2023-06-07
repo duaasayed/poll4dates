@@ -26,7 +26,7 @@
                                         </label>
 
                                         <input type="text" name="event_name"
-                                            value="{% if form.event_name.value %} {{form.event_name.value}} {% endif %}"
+                                            value="{% if form.event_name.value %} {{form.event_name.value}} {% else %} {{request.session.form_data.event_name}} {% endif %}"
                                             class="form-control" required>
                                         {% if form.errors and 'event_name' in form.errors%}
                                             {% for error in form.errors.event_name %}
@@ -40,7 +40,7 @@
                                             {{form.fields.event_organizer.label}}
                                         </label>
                                         <input type="text" name="event_organizer"
-                                            value="{% if form.event_name.value %} {{form.event_name.value}} {% elif request.user.is_authenticated %} {{request.user.name}} {% endif %}"
+                                            value="{% if form.event_name.value %} {{form.event_name.value}} {% elif 'form_data' in request.session %} {{request.session.form_data.event_organizer}} {% elif request.user.is_authenticated %} {{request.user.name}} {% endif %}"
                                             class="form-control d-inline" required>
                                         {% if form.errors and 'event_organizer' in form.errors%}
                                             {% for error in form.errors.event_organizer %}
@@ -56,7 +56,7 @@
                                         </label>
 
                                         <input type="datetime-local" name="rsvp_by"
-                                            value="{% if form.rsvp_by.value %} {{form.rsvp_by.value}} {% endif %}"
+                                            value="{% if form.rsvp_by.value %} {{form.rsvp_by.value}} {% else %} {{request.session.form_data.rsvp_by}} {% endif %}"
                                             class="form-control" required>
                                         {% if form.errors and 'rsvp_by' in form.errors%}
                                             {% for error in form.errors.rsvp_by %}
@@ -72,7 +72,7 @@
                                         </label>
 
                                         <input type="text" name="event_timezone"
-                                            value="{% if form.event_timezone.value %} {{form.event_timezone.value}} {% endif %}"
+                                            value="{% if form.event_timezone.value %} {{form.event_timezone.value}} {% else %} {{request.session.form_data.event_timezone}} {% endif %}"
                                             class="form-control" required>
                                         {% if form.errors and 'event_timezone' in form.errors%}
                                             {% for error in form.errors.event_timezone %}
@@ -90,7 +90,7 @@
                                         </label>
 
                                         <input type="text" name="event_location"
-                                            value="{% if form.event_location.value %} {{form.event_location.value}} {% endif %}"
+                                            value="{% if form.event_location.value %} {{form.event_location.value}} {% else %} {{request.session.form_data.event_location}} {% endif %}"
                                             class="form-control">
                                         {% if form.errors and 'event_location' in form.errors%}
                                             {% for error in form.errors.event_location %}
@@ -105,7 +105,7 @@
                                             {{form.fields.event_details.label}}
                                         </label>
                                         <textarea rows="8" class="form-control" cols="36"
-                                            name="event_details">{% if form.event_details.value %} {{form.event_details.value}} {% endif %}</textarea>
+                                            name="event_details">{% if form.event_details.value %} {{form.event_details.value}} {% else %} {{request.session.form_data.event_details}} {% endif %}</textarea>
                                         {% if form.errors and 'event_details' in form.errors%}
                                             {% for error in form.errors.event_details %}
                                                 <p style="color: red">{{error|escape}}</p>
@@ -136,15 +136,13 @@
                                 <div class="card p-3 d-flex flex-row justify-content-start mb-3 rounded" style="border: 1px solid #71c55d;">
                                     <div class="col-md-11">
                                         <p class="d-none">{{timeslot}}</p>
-                                        {% comment %} {% with timeslot|split:',' as strs %}
+                                        {% with timeslot|split:',' as strs %}
                                         <p>{{strs.0|str_date:'%Y-%m-%d'|date:'D, M j'}}</p>
                                         <span>{{strs.1|str_date:'%H:%M'|date:"P"}} - {{strs.2|str_date:'%H:%M'|date:"P"}}</span>
-                                        {% endcomment %}
                                     </div>
-                                    {% comment %}
                                     <button id="{{strs.0}},{{strs.1}}" onclick="removeEvent(this)" type="button"
                                         class="close">&times;</button>
-                                    {% endwith %} {% endcomment %}
+                                    {% endwith %} 
                                 </div>
                             {% endfor %}
                         </div>

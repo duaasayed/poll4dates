@@ -1,6 +1,3 @@
-from typing import Any
-from django.db.models.query import QuerySet
-from django.http import HttpResponse
 from .models import Poll
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from django.views.generic.edit import FormView
@@ -8,44 +5,68 @@ from .forms import PollCreationForm
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import redirect_to_login
 
 class PollCreate(FormView):
     template_name = 'polls/create.html'
     form_class = PollCreationForm
+    login_url = reverse_lazy('account_login')
+    
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            request.session['form_data'] = request.POST
+            request.session['timeslots'] = request.POST.getlist('timeslots')
+            return redirect_to_login(self.request.get_full_path(), self.login_url)
+        return super().post(request, *args, **kwargs)
 
-    def form_valid(self, form: Any) -> HttpResponse:
+    def form_valid(self, form):
         poll = form.save()
         poll.creator = self.request.user
         poll.save()
         for slot in form.cleaned_data['timeslots']:
             poll.time_slots.create(**slot)
+        
+        if 'form_data' in self.request.session: 
+            del self.request.session['form_data']
+            del self.request.session['timeslots']
+       
         success_url = reverse_lazy('polls:poll_detail', kwargs={'pk': poll.pk})
         return redirect(success_url, {'poll': poll})
 
 
-class PollList(ListView):
+class PollList(LoginRequiredMixin, ListView):
     model = Poll
     context_object_name = 'polls'
     template_name='polls/list.html'
 
-    def get_queryset(self) -> QuerySet[Any]:
+    def get_queryset(self):
         current_user = self.request.user
         queryset = Poll.objects.filter(creator=current_user)
         return queryset
     
 
-class PollDetail(DetailView):
+class PollDetail(LoginRequiredMixin, DetailView):
     model = Poll
     template_name='polls/show.html'
     context_object_name = 'poll'
 
-
-class PollUpdate(UpdateView):
+    def get_queryset(self):
+        current_user = self.request.user
+        queryset = Poll.objects.prefetch_related('time_slots').filter(creator=current_user)
+        return queryset
+        
+    
+class PollUpdate(LoginRequiredMixin, UpdateView):
     model = Poll
     template_name = "polls/show.html"
     fields = ['event_name', 'event_details', 'event_location', 'rsvp_by']
+    
+    def get(self, request, *args, **kwargs):
+        poll_url = reverse_lazy('polls:poll_detail', kwargs={'pk': self.kwargs[self.pk_url_kwarg]})
+        return redirect(poll_url)
 
-    def post(self, *args: str, **kwargs: Any) -> HttpResponse:
+    def post(self, *args, **kwargs):
         post_data = self.request.POST
 
         if '_method' in post_data and post_data['_method'] == 'put':
@@ -72,6 +93,10 @@ class PollUpdate(UpdateView):
         return redirect(success_url, {'poll': poll})
     
 
-class PollDelete(DeleteView):
+class PollDelete(LoginRequiredMixin, DeleteView):
     model = Poll
     success_url = reverse_lazy('polls:my_polls')
+
+    def get(self, request, *args, **kwargs):
+        poll_url = reverse_lazy('polls:poll_detail', kwargs={'pk': self.kwargs[self.pk_url_kwarg]})
+        return redirect(poll_url)
