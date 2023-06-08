@@ -187,75 +187,87 @@
                     </div>
                 </div>
             {% endif %}
-            <div class="card mt-5 mb-5 py-5 p-md-5 col-md-8 mx-auto shadow d-md-flex flex-row justify-content-between"
+            <div class="card mt-5 mb-5 py-5 p-md-5 col-md-12 mx-auto shadow d-md-flex flex-row justify-content-between"
             style="display: block;">
-            <div class="col-md-8 mr-3">
-                <p>Check the box to mark your preference for each date.<br>
-                    The option is yes <i class="bi bi-check2" style="color: #71c55d;"></i> or leave
-                    empty.<br> Time zone: "Africa/Cairo".
-                </p>
-                <div class="d-flex flex-row mb-5">
-                    <button id="votes-op" class="mr-5 options">Votes</button>
-                    <button id="calendar-op" class="mr-5 options">Calendar</button>
-                    <button id="table-op" class="mr-5 options">Table</button>
-                </div>
-                <div id="votes-body" class="">
-                    <h3 class="ml-2 mb-3">Votes</h3>
-                    {% for timeslot in poll.time_slots.all %}
-                        <div class="d-flex flex-row">
-                            {% if not user.is_authenticated %}
-                                <div class="form-check mt-3 mr-3">
-                                    <input onchange="updateChoice(this)" id="choice-{{timeslot.id}}" type="checkbox"
-                                        class="float-left mt-3" style="transform: scale(1.5);accent-color: green;"
-                                        value="{{timeslot.id}}">
-                                </div>
-                            {% endif %}
-                            <div class="d-inline col-md-9">
-                                <span>
-                                    {{timeslot.day|date:"D, M j"}} @ {{timeslot.start|date:"P"}} -
-                                    {{timeslot.end|date:"P"}}
-                                </span>
-                                <div class="progress" style="height: 40px; border-radius: 50px; font-size: 16px;">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="{{timeslot.votes_count}}"
-                                        aria-valuemin="0" aria-valuemax="{{poll.max_vote}}"
-                                        style="width: {% widthratio timeslot.votes_count poll.max_vote 100 %}%; background-color: #71c55d;">
-                                        &#10003; {{timeslot.votes_count}}
+                <div class="col-md-8 mr-3">
+                    <p>Check the box to mark your preference for each date.<br>
+                        The option is yes <i class="bi bi-check2" style="color: #71c55d;"></i> or leave
+                        empty.<br> Time zone: "Africa/Cairo".
+                    </p>
+                    <div class="d-flex flex-row mb-5">
+                        <button id="votes-op" class="mr-5 options">Votes</button>
+                        <button id="calendar-op" class="mr-5 options">Calendar</button>
+                        <button id="table-op" class="mr-5 options">Table</button>
+                    </div>
+                    <div id="votes-body" class="">
+                        <h3 class="ml-2 mb-3">Votes</h3>
+                        {% for timeslot in poll.time_slots.all %}
+                            <div class="d-flex flex-row">
+                                {% if not user.is_authenticated %}
+                                    <div class="form-check mt-3 mr-3">
+                                        <input onchange="updateChoice(this)" id="choice-{{timeslot.id}}" type="checkbox"
+                                            class="float-left mt-3" style="transform: scale(1.5);accent-color: green;"
+                                            value="{{timeslot.id}}">
                                     </div>
-                                </div><br>
+                                {% endif %}
+                                <div class="d-inline col-md-9">
+                                    <span>
+                                        {{timeslot.day|date:"D, M j"}} @ {{timeslot.start|date:"P"}} -
+                                        {{timeslot.end|date:"P"}}
+                                    </span>
+                                    <div class="progress" style="height: 40px; border-radius: 50px; font-size: 16px;">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="{{timeslot.votes_count}}"
+                                            aria-valuemin="0" aria-valuemax="{{poll.max_vote}}"
+                                            style="width: {% widthratio timeslot.votes_count poll.max_vote 100 %}%; background-color: #71c55d;">
+                                            &#10003; {{timeslot.votes_count}}
+                                        </div>
+                                    </div><br>
+                                </div>
                             </div>
-                        </div>
-                    {% endfor %}
-                </div>
-                <div id='calendar' class="d-none"></div>
-                <div id="table-body" class="d-none col-md-12 table-responsive">
-                    <h3 class="ml-2 mb-3">Table</h3>
-                    <table class="table">
-                        <thead class="thead-light">
-                            <tr>
-                                <th></th>
-                                {% for timeslot in poll.time_slots.all %}
-                                    <th class="text-center">{{timeslot.day|date:"D, M j"}}<br>
-                                        <span>{{timeslot.start|date:"P"}} - {{timeslot.end|date:"P"}}</span>
-                                    </th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody class="">
-                            {% for guest in poll.guests.all %}
-                                <tr id="guest-{{guest.id}}">
-                                    <td>{{guest.name}}</td>
+                        {% endfor %}
+                    </div>
+                    <div id='calendar' class="d-none"></div>
+                    <div id="table-body" class="d-none col-md-12 table-responsive">
+                        <h3 class="ml-2 mb-3">Table</h3>
+                        <table class="table">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th></th>
                                     {% for timeslot in poll.time_slots.all %}
-                                        <td onclick="updateTable(this)" id="slot-{{timeslot.id}}" class="text-center">
-                                            
-                                            {% if guest|has_voted:timeslot %}
-                                                <i class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>
-                                            {% endif %}
-                                        </td>
+                                        <th class="text-center">{{timeslot.day|date:"D, M j"}}<br>
+                                            <span>{{timeslot.start|date:"P"}} - {{timeslot.end|date:"P"}}</span>
+                                        </th>
                                     {% endfor %}
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="">
+                                {% for guest in poll.guests.all %}
+                                    <tr id="guest-{{guest.id}}">
+                                        <td>{{guest.name}}</td>
+                                        {% for timeslot in poll.time_slots.all %}
+                                            <td onclick="updateTable(this)" id="slot-{{timeslot.id}}" class="text-center">
+                                                
+                                                {% if guest|has_voted:timeslot %}
+                                                    <i class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <p>Your guests do not see the email addresses. Click on a guest for details.</p>
+                    <strong>Voted ({{poll.guests_voted.count}}):</strong><br>
+                    {% for guest in poll.guests_voted %}
+                        <span>{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
+                    {% endfor %}
+                    <strong>On waiting: ({{poll.guests_waiting.count}}):</strong><br>    
+                    {% for guest in poll.guests_waiting %}
+                        <span>{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
+                    {% endfor %}
                 </div>
             </div>
             <div class="modal fade show" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"

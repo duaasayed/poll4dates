@@ -29,6 +29,14 @@ class Poll(models.Model):
     def max_vote(self):
         return self.time_slots.annotate(votes_count=models.Count('votes'))\
             .aggregate(max_vote=models.Max('votes_count'))['max_vote']
+    
+    @property
+    def guests_voted(self):
+        return self.guests.filter(votes__isnull=False)
+    
+    @property
+    def guests_waiting(self):
+        return self.guests.filter(votes__isnull=True)
 
 
 class TimeSlot(models.Model):
