@@ -227,6 +227,36 @@
                     {% endfor %}
                 </div>
                 <div id='calendar' class="d-none"></div>
+                <div id="table-body" class="d-none col-md-12 table-responsive">
+                    <h3 class="ml-2 mb-3">Table</h3>
+                    <table class="table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th></th>
+                                {% for timeslot in poll.time_slots.all %}
+                                    <th class="text-center">{{timeslot.day|date:"D, M j"}}<br>
+                                        <span>{{timeslot.start|date:"P"}} - {{timeslot.end|date:"P"}}</span>
+                                    </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody class="">
+                            {% for guest in poll.guests.all %}
+                                <tr id="guest-{{guest.id}}">
+                                    <td>{{guest.name}}</td>
+                                    {% for timeslot in poll.time_slots.all %}
+                                        <td onclick="updateTable(this)" id="slot-{{timeslot.id}}" class="text-center">
+                                            
+                                            {% if guest|has_voted:timeslot %}
+                                                <i class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="modal fade show" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
                 aria-hidden="true">

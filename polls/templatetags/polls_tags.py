@@ -21,3 +21,8 @@ def str_date(value, key):
 def queryset_as_json(qs):
     json_data = serializers.serialize("json", qs)
     return mark_safe(json_data)
+
+
+@register.filter
+def has_voted(guest, timeslot):
+    return guest.votes.filter(time_slot=timeslot).exists()
