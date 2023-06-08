@@ -226,6 +226,7 @@
                         </div>
                     {% endfor %}
                 </div>
+                <div id='calendar' class="d-none"></div>
             </div>
             <div class="modal fade show" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
                 aria-hidden="true">
@@ -304,5 +305,6 @@
     </script>
     <script src="{% static 'events/js/poll_settings.js' %}"></script>
     <script src="{% static 'events/js/invite_guests.js' %}"></script>
+    <script src="{% static 'fullcalendar/dist/index.global.js' %}"></script>
     <script src="{% static 'events/js/votes_options.js' %}"></script>
 {% endblock extrascripts %}
