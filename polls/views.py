@@ -7,6 +7,11 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import redirect_to_login
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from django.core.mail import EmailMultiAlternatives, get_connection
+from django.template.loader import render_to_string
+from django.conf import settings
 
 class PollCreate(FormView):
     template_name = 'polls/create.html'
@@ -35,7 +40,7 @@ class PollCreate(FormView):
         return redirect(success_url, {'poll': poll})
 
 
-class PollList(LoginRequiredMixin, ListView):
+class PollList(LoginRequiredMixin,  ListView):
     model = Poll
     context_object_name = 'polls'
     template_name='polls/list.html'
@@ -100,3 +105,30 @@ class PollDelete(LoginRequiredMixin, DeleteView):
     def get(self, request, *args, **kwargs):
         poll_url = reverse_lazy('polls:poll_detail', kwargs={'pk': self.kwargs[self.pk_url_kwarg]})
         return redirect(poll_url)
+    
+
+@login_required
+@require_http_methods(['POST'])
+def invite(request, pk):
+    poll = Poll.objects.get(pk=pk)
+    guests = request.POST.getlist('guest_list[]')
+
+    mails = []
+
+    for guest in guests:
+        guest_info = guest.split(' ')
+
+        name = ' '.join(guest_info[:-1])
+        email = guest_info[-1]
+        
+        poll.guests.create(name=name, email=email)
+
+        mail_body = render_to_string('emails/invite.html', {'poll': poll, 'guest': name})
+        mail = EmailMultiAlternatives('You got an invitation', mail_body, settings.EMAIL_HOST_USER, [email])
+        mail.attach_alternative(mail_body, 'text/html')
+        mails.append(mail)
+    
+    connection = get_connection()
+    connection.send_messages(mails)
+    
+    return redirect(reverse_lazy('polls:poll_detail', kwargs={'pk': pk}))

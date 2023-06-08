@@ -26,8 +26,16 @@ class TimeSlot(models.Model):
     end = models.TimeField()
 
 
+class Guest(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='guests')
+    name = models.CharField(max_length=225)
+    email = models.EmailField(max_length=250, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Vote(models.Model):
     time_slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE, related_name='votes')
-    guest_name = models.CharField(max_length=225)
-    guest_email = models.EmailField(blank=True, null=True)
+    guest = models.ForeignKey(Guest, on_delete=models.CASCADE, related_name='votes')
     

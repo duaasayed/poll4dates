@@ -6,7 +6,7 @@
 <main id="main">
     <section class="inner-page pt-4 mt-5" style="height: 1500px">
         <div class="container col-md-12 mt-5">
-            <div class="row justify-content-between col-md-9 p-0 mx-auto mt-5 position-relative">
+            <div class="row justify-content-between col-md-11 p-0 mx-auto mt-5 position-relative">
                 <div class="col-md-7 shadow rounded mt-5 p-5">
                     <div class="row justify-content-between">
                         <div class="col-9">
@@ -87,17 +87,106 @@
                         <div id="messages" class="d-flex flex-column-reverse"
                             style="min-height: 200px; max-height: 200px; overflow-y: scroll; position: relative;">
                         </div>
-                        <div class="row justify-content-start align-items-center">
-                            <textarea id="messageContent" class="col-9 ml-3 form-control" rows="2"
+                        <div class="row justify-content-between mb-5 align-items-center">
+                            <div class="col-9 ml-3">
+                                <textarea id="messageContent" class="form-control" rows="2"
                                 placeholder="Leave a message"></textarea>
-                            <button id="message" class="col-2" style="border: none; background-color: white;">
-                                <i class="bi bi-send-fill fa-2x" style="color: #71c55d;"></i>
-                            </button>
+                            </div>
+                            <div class="col-3">
+                                <button id="message" style="border: none; background-color: white;">
+                                    <i class="bi bi-send-fill fa-2x" style="color: #71c55d; font-size: 20px"></i>
+                                </button>
+                            </div>
+                            
                         </div>
                     </div>
 
                 </div>
             </div>
+            {% if user.is_authenticated and user == poll.creator %}
+                <div class="accordion accordion-flush shadow rounded p-0 col-md-11 mx-auto d-flex mt-5"
+                    id="accordionExample">
+                    <div class="col-md-6 p-3 text-center accordion-item" style=" border-right: 2px solid #71c55d;">
+                        <h3 class="accordion-header" id="flush-headingOne">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne"
+                                style="border: none; background-color: white;">
+                                Add Guests </button>
+                        </h3>
+
+                    </div>
+                    <div class="col-md-6 p-3 text-center accordion-item">
+                        <h3 class="accordion-header" id="flush-headingTwo">
+
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo"
+                                style="border: none; background-color: white;">
+                                Share with link </button>
+                        </h3>
+                    </div>
+                </div>
+                <div class="card col-md-11 mx-auto shadow rounded mt-5 mb-5 p-5 shadow text-center accordion-collapse collapse"
+                    id="flush-collapseOne" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <h3>Add Guests</h3>
+                        <p class="text-left">Enter your guest’s name and email address and we’ll send them an email
+                            with a unique link to your poll. Your guests will not have to sign in.<br><br>
+                            Preview your guest list in the "Send to" section below. If you need to edit any of your
+                            guests just click on the name or email and make the changes you need. Before you hit 
+                            "SEND" you can opt to store the guest list as a guest group in case you want to use it again later.<br><br>
+                            You can paste a list of contacts if you seperate them with a comma, e.g. Ann Smith
+                            ann@email.com, Ron ron.w@email.com, etc.
+
+                        </p>
+                        <form id="addGuestForm" method="post" action="{% url 'polls:invite' poll.pk %}">
+                            <div class="row justify-content-between">
+                                {% csrf_token %}
+                                <input id="guest-list" type="hidden" name="guest_list">
+                                <div class="col-md-7 mb-5 mb-md-0">
+                                    <label class="float-left"><i class="bi bi-person" style="color: #71c55d;"></i>
+                                        name email
+                                    </label>
+                                    <input type="text" class="form-control" name="guest" id="invite-guest">
+                                </div>
+
+                                <div style="background-color: #D3D3D3;float: right;" class="p-3 text-left rounded col-md-4">
+                                    <strong>send to:</strong><br>
+                                    <div class="mb-2" id="guests">
+                                    </div>
+                                    <button id="send-invite" class="btn-get-started scrollto float-right mb-0">Send</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card col-md-11 mx-auto shadow rounded mt-5 mb-5 p-md-5 shadow text-center accordion-collapse collapse"
+                    id="flush-collapseTwo" aria-labelledby="flush-headingTwo" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <h3>Share the poll with a link</h3>
+                        <p class="text-left">Copy the shareable link and share it with your guests on social media,
+                            with sms, or anyhow you like.
+                        </p>
+                        <div class="col-md-6 mx-auto">
+                            <div style="background-color: #D3D3D3;" class="p-4 text-left rounded">
+                                <a href="{{event.poll_link}}">
+                                    <p id="toshare">Please mark your availability for: {{poll}}<br>
+                                        {{event.poll_link}}
+                                    </p>
+                                </a>
+                            </div>
+                            <button class="btn-get-started scrollto mt-3" id="copy">Copy to Share</button>
+                        </div>
+
+                        <p class="text-left">
+                            Anyone with the link can add themselves to the poll and vote (the 20 guest limit still
+                            applies unless the poll is Premium) <br><br>
+                            When your guests add themselves to your poll they will add a name and optionally include
+                            their email address. Please note that if they opt not to include their email address they won’t
+                            receive any notifications regarding the poll, e.g. change in location, final date picked etc.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
             
             <div class="modal fade show" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
                 aria-hidden="true">
@@ -167,4 +256,5 @@
         });
     </script>
     <script src="{% static 'events/js/poll_settings.js' %}"></script>
+    <script src="{% static 'events/js/invite_guests.js' %}"></script>
 {% endblock extrascripts %}
