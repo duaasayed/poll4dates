@@ -24,6 +24,11 @@ class Poll(models.Model):
     @property
     def ended(self):
         return self.rsvp_by < timezone.now()
+    
+    @property
+    def max_vote(self):
+        return self.time_slots.annotate(votes_count=models.Count('votes'))\
+            .aggregate(max_vote=models.Max('votes_count'))['max_vote']
 
 
 class TimeSlot(models.Model):
@@ -32,6 +37,9 @@ class TimeSlot(models.Model):
     start = models.TimeField()
     end = models.TimeField()
 
+    @property
+    def votes_count(self):
+        return self.votes.count()
 
 class Guest(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='guests')
