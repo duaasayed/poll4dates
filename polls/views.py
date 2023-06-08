@@ -132,3 +132,8 @@ def invite(request, pk):
     connection.send_messages(mails)
     
     return redirect(reverse_lazy('polls:poll_detail', kwargs={'pk': pk}))
+
+
+def vote(request, token):
+    poll = Poll.objects.get(token=token)
+    return redirect(reverse_lazy('polls:poll_detail', kwargs={'pk': poll.pk}))

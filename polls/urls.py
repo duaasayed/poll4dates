@@ -12,4 +12,5 @@ urlpatterns = [
     path("polls/<int:pk>/edit/", views.PollUpdate.as_view(), name='poll_update'),
     path("polls/<int:pk>/delete/", views.PollDelete.as_view(), name='delete'),
     path("polls/<int:pk>/invite/", views.invite, name='invite'),
+    path("polls/<str:token>/", views.vote, name='vote_link')
 ]
