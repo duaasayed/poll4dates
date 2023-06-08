@@ -51,15 +51,27 @@ class PollList(LoginRequiredMixin,  ListView):
         return queryset
     
 
-class PollDetail(LoginRequiredMixin, DetailView):
+class PollDetail(DetailView):
     model = Poll
     template_name='polls/show.html'
     context_object_name = 'poll'
+    login_url = reverse_lazy('account_login')
 
     def get_queryset(self):
         current_user = self.request.user
-        queryset = Poll.objects.prefetch_related('time_slots').filter(creator=current_user)
+        queryset = Poll.objects.prefetch_related('time_slots')
+        if current_user.is_authenticated:
+            queryset = queryset.filter(creator=current_user)
         return queryset
+    
+    def get(self, request, *args, **kwargs):
+        invite = request.GET.get('invite', None)
+
+        if not invite:
+            if not request.user.is_authenticated:
+                return redirect_to_login(request.get_full_path(), self.login_url)
+        return super().get(request, *args, **kwargs)
+
         
     
 class PollUpdate(LoginRequiredMixin, UpdateView):
