@@ -1,4 +1,4 @@
-from .models import Poll
+from .models import Poll, Guest
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from django.views.generic.edit import FormView
 from .forms import PollCreationForm
@@ -13,6 +13,9 @@ from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 from django.conf import settings
 from urllib.parse import urlencode
+from django.http import JsonResponse
+from django.core import serializers
+
 
 class PollCreate(FormView):
     template_name = 'polls/create.html'
@@ -162,3 +165,10 @@ def add_guest(request, pk=None):
     query_string = urlencode(params)
     return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': pk}) + 
         '?' + query_string)
+
+
+def get_guest(request, poll_pk=None, guest_pk=None):
+    guest = Guest.objects.filter(poll=poll_pk).get(pk=guest_pk)
+    guest = serializers.serialize('json', [guest])
+    return JsonResponse({'guest': guest})
+

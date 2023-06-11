@@ -45,6 +45,35 @@
                     </div>
                 </div>
             {% endif %}
+            <div class="modal fade show" id="linkModal" tabindex="-1" role="dialog" aria-labelledby="linkModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background-color: #71c55d; color: white;">
+                            <h5 class="modal-title" id="linktModalLabel">Your Personal Link</h5>
+                            <button id="closeLinkModal" type=" button" class="close" data-dismiss="modal"
+                                aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-center">Copy and save this link to access this poll later. You can update
+                                your vote anytime while the poll is still open.
+                            </p>
+                            <div style="background-color: #D3D3D3;" class="p-4 text-left rounded">
+                                <p id="link"></p>
+                                <p id="copyLink" class="text-center" style="color: blue; cursor: pointer;">Copy</p>
+                            </div>
+                            <p class="text-center">
+                                You can access this dialog from a link next to your name in the poll.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="ok" class="btn btn-get-started">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row justify-content-between col-md-11 p-0 mx-auto mt-5 position-relative">
                 <div class="col-md-7 shadow rounded mt-5 p-5">
                     <div class="row justify-content-between">
@@ -297,6 +326,7 @@
                         </table>
                     </div>
                 </div>
+                {% if user.is_authenticated %}
                 <div class="col-md-3">
                     <p>Your guests do not see the email addresses. Click on a guest for details.</p>
                     <strong>Voted ({{poll.guests_voted.count}}):</strong><br>
@@ -308,6 +338,13 @@
                         <span>{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
                     {% endfor %}
                 </div>
+                {% else %}
+                <div class="col-md-3">
+                    <strong>You are voting as:</strong><br>
+                    <span id="guest_name">{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
+                    <span id="vote_link" style="color: #71c55d; cursor: pointer">your personal link to this poll</span>
+                </div>
+                {% endif %}
             </div>
             <div class="modal fade show" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
                 aria-hidden="true">
@@ -338,6 +375,7 @@
 {% endblock content %}
 
 {% block extrascripts %}
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
         var event_name = "{{poll.event_name}}";
         var event_details = "{{poll.event_details}}";
@@ -365,6 +403,22 @@
             chatSocket.onClose = function(e) {
                 console.log("Error, connection closed");
             };
+
+            var guest_id = '{{request.GET.gid}}'
+            var guest_name = document.getElementById('guest_name')
+
+            if (guest_id) {
+                axios.get(`http://127.0.0.1:8000/polls/${poll.pk}/guests/${guest_id}/`).then(data => {
+                    guest = JSON.parse(data.data.guest)[0]
+                    guest_name.innerText = guest.fields.name
+                    guest.fields.choices.forEach(choice => {
+                        timeslot = document.getElementById('choice-' + choice)
+                        if (timeslot) {
+                            timeslot.checked = true
+                        }
+                    })
+                })
+            }
 
             messagebtn.addEventListener('click', function () {
                 const messageInput = document.getElementById('messageContent')
@@ -398,7 +452,36 @@
                     guestModal.style.display = 'none'
                 })
             }
+
+            var copylink = document.getElementById('copyLink')
+            if (copylink) {
+                copylink.addEventListener('click', () => {
+                    var text = document.getElementById("link").innerText
+                    navigator.clipboard.writeText(text)
+                })
+            }
+
+            var vote_link = document.getElementById('vote_link')
+            var linkModel = document.getElementById('linkModal')
+            var closeLinkModal = document.getElementById('closeLinkModal')
+            vote_link.addEventListener('click', () => {
+                console.log('test')
+                custom_link = 'http://127.0.0.1:8000/polls/{{poll.pk}}/?gid=' + guest_id + '/'
+                linkModal.style.display = 'block'
+                document.getElementById('link').innerText = custom_link
+            })
+
+            var toVote = document.getElementById('ok')
+            toVote.addEventListener('click', () => {
+                linkModal.style.display = 'none'
+            })
+
+            closeLinkModal.addEventListener('click', () => {
+                linkModal.style.display = 'none'
+            })
         });
+
+
     </script>
     <script src="{% static 'events/js/poll_settings.js' %}"></script>
     <script src="{% static 'events/js/invite_guests.js' %}"></script>
