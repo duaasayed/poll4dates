@@ -6,6 +6,45 @@
 <main id="main">
     <section class="inner-page pt-4 mt-5" style="height: 1500px">
         <div class="container col-md-12 mt-5">
+            {% if not user.is_authenticated and 'invite' in request.GET %}
+                <div class="modal fade show" id="guestModal" tabindex="-1" role="dialog" aria-labelledby="guestModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background-color: #71c55d; color: white;">
+                                <h5 class="modal-title" id="guestModalLabel">Add your name to the poll</h5>
+                                <button id="closeGuestModal" type=" button" class="close" data-dismiss="modal"
+                                    aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+
+                            <form id="guest-form" method="post" action="{% url 'polls:add_guest' poll.pk %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Name</label>
+                                        <input type="text" name="name" id="guest-name" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" name="email" id="guest-email" class="form-control">
+                                    </div>
+                                    <div class="mb-3">
+                                        <p>Event updates will be sent to the email address you provide. Please check your
+                                            inbox for an email verification link to start receiving updates.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" id="add-guest" class="btn btn-get-started">OK</button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
             <div class="row justify-content-between col-md-11 p-0 mx-auto mt-5 position-relative">
                 <div class="col-md-7 shadow rounded mt-5 p-5">
                     <div class="row justify-content-between">
@@ -168,9 +207,9 @@
                         </p>
                         <div class="col-md-6 mx-auto">
                             <div style="background-color: #D3D3D3;" class="p-4 text-left rounded">
-                                <a href="{% url 'polls:vote_link' poll.token %}">
+                                <a href="{% url 'polls:poll_detail' poll.pk %}?invite={{poll.token}}">
                                     <p id="toshare">Please mark your availability for: {{poll}}<br>
-                                        http://127.0.0.1:8000{% url 'polls:vote_link' poll.token %}
+                                        http://127.0.0.1:8000{% url 'polls:poll_detail' poll.pk %}?invite={{poll.token}}
                                     </p>
                                 </a>
                             </div>
@@ -341,6 +380,22 @@
                 copybtn.addEventListener('click', () => {
                     var text = document.getElementById("toshare").innerText
                     navigator.clipboard.writeText(text)
+                })
+            }
+
+            var guestModal = document.getElementById('guestModal')
+            var closeGuestModal = document.getElementById('closeGuestModal')
+            var guestForm = document.getElementById('guest-form')
+            var guestName = document.getElementById('guest-name')
+            var guestEmail = document.getElementById('guest-email')
+            var addGuest = document.getElementById('add-guest')
+            var linkModal = document.getElementById('linkModal')
+            if (guestModal) {
+                guestModal.style.display = 'block'
+            }
+            if (closeGuestModal) {
+                closeGuestModal.addEventListener('click', () => {
+                    guestModal.style.display = 'none'
                 })
             }
         });

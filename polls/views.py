@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 from django.conf import settings
+from urllib.parse import urlencode
 
 class PollCreate(FormView):
     template_name = 'polls/create.html'
@@ -66,8 +67,9 @@ class PollDetail(DetailView):
     
     def get(self, request, *args, **kwargs):
         invite = request.GET.get('invite', None)
+        gid = request.GET.get('gid', None)
 
-        if not invite:
+        if not invite and not gid:
             if not request.user.is_authenticated:
                 return redirect_to_login(request.get_full_path(), self.login_url)
         return super().get(request, *args, **kwargs)
@@ -133,9 +135,9 @@ def invite(request, pk):
         name = ' '.join(guest_info[:-1])
         email = guest_info[-1]
         
-        poll.guests.create(name=name, email=email)
+        guest = poll.guests.create(name=name, email=email)
 
-        mail_body = render_to_string('emails/invite.html', {'poll': poll, 'guest': name})
+        mail_body = render_to_string('emails/invite.html', {'poll': poll, 'guest': guest})
         mail = EmailMultiAlternatives('You got an invitation', mail_body, settings.EMAIL_HOST_USER, [email])
         mail.attach_alternative(mail_body, 'text/html')
         mails.append(mail)
@@ -146,6 +148,17 @@ def invite(request, pk):
     return redirect(reverse_lazy('polls:poll_detail', kwargs={'pk': pk}))
 
 
-def vote(request, token):
-    poll = Poll.objects.get(token=token)
-    return redirect(reverse_lazy('polls:poll_detail', kwargs={'pk': poll.pk}))
+@require_http_methods(['POST'])
+def add_guest(request, pk=None):
+    guest_name = request.POST.get('name', None)
+    guest_email = request.POST.get('email', None)
+
+    poll = Poll.objects.get(pk=pk)
+
+    if guest_name:
+        guest = poll.guests.create(name=guest_name, email=guest_email)
+
+    params = {'gid': guest.pk}
+    query_string = urlencode(params)
+    return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': pk}) + 
+        '?' + query_string)
