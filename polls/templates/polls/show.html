@@ -380,6 +380,8 @@
 
 {% block extrascripts %}
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="{% static 'fullcalendar/dist/index.global.js' %}"></script>
+
     <script>
         var event_name = "{{poll.event_name}}";
         var event_details = "{{poll.event_details}}";
@@ -393,6 +395,7 @@
         var guest = null;
         var votes = null;
         var guest_id = null;
+        var csrf_token = "{{csrf_token}}"
 
         document.addEventListener("DOMContentLoaded", function () {
             const chatSocket = new WebSocket(
@@ -473,12 +476,14 @@
             var vote_link = document.getElementById('vote_link')
             var linkModel = document.getElementById('linkModal')
             var closeLinkModal = document.getElementById('closeLinkModal')
-            vote_link.addEventListener('click', () => {
-                console.log('test')
-                custom_link = 'http://127.0.0.1:8000/polls/{{poll.pk}}/?gid=' + guest_id + '/'
-                linkModal.style.display = 'block'
-                document.getElementById('link').innerText = custom_link
-            })
+            if (vote_link) {
+                vote_link.addEventListener('click', () => {
+                    console.log('test')
+                    custom_link = 'http://127.0.0.1:8000/polls/{{poll.pk}}/?gid=' + guest_id + '/'
+                    linkModal.style.display = 'block'
+                    document.getElementById('link').innerText = custom_link
+                })
+            }
 
             var toVote = document.getElementById('ok')
             toVote.addEventListener('click', () => {

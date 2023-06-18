@@ -10,14 +10,16 @@ votesbtn.addEventListener('click', () => {
 
 calendarbtn.addEventListener('click', () => {
     var calendarEl = document.getElementById('calendar');
+    if (tablebtn) {
+        document.getElementById('table-body').classList.add('d-none')
+    }
+    document.getElementById('votes-body').classList.add('d-none')
     calendarEl.classList.remove('d-none')
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         selectable: true,
         selectMirror: true,
-        validRange: {
-            start: Date.now(),
-        },
+
         editable: true,
         eventDidMount: (cell) => {
             console.log(cell.event)
@@ -28,9 +30,9 @@ calendarbtn.addEventListener('click', () => {
             cell.el.children[0].children[0].append(checkbox)
             checkbox.value = cell.event.id
             console.log(guest)
-            if (guest && guest.fields.choices) {
-                guest.fields.choices.forEach(choice => {
-                    if ((choice == cell.event.id)) {
+            if (votes) {
+                votes.forEach(vote => {
+                    if ((parseInt(vote.fields.time_slot) == cell.event.id)) {
                         checkbox.checked = true
                     }
                 })
@@ -40,13 +42,18 @@ calendarbtn.addEventListener('click', () => {
                     axios.defaults.xsrfCookieName = 'csrftoken'
 
                     let data = new FormData();
+                    var _method = 'post'
 
-                    data.append("_method", 'put')
-                    data.append("action", guest.fields.choices.includes(parseInt(timeslot)) ? 'remove' : 'add')
-                    data.append("csrfmiddlewaretoken", '{{csrf_token}}')
+                    votes.forEach(vote => {
+                        if (parseInt(vote.fields.time_slot) == timeslot) {
+                            _method = 'delete'
+                        }
+                    })
+                    data.append("_method", _method)
+                    data.append("csrfmiddlewaretoken", csrf_token)
                     data.append('timeslot', timeslot)
 
-                    axios.post('http://127.0.0.1:8000/invites/{{event.poll_id}}/poll/' + guest.fields.custom_id, data)
+                    axios.post(`http://127.0.0.1:8000/polls/${poll_pk}/guests/${guest_id}/vote/`, data)
                         .then(data => location.reload())
                 })
             }
@@ -54,19 +61,19 @@ calendarbtn.addEventListener('click', () => {
 
     })
     calendar.render()
-    var timeslots = JSON.parse('{{timeslots|queryset_as_json}}')
+    var timeslots = JSON.parse(slots)
     console.log(timeslots)
     timeslots.forEach(timeslot => {
         var event = {
             'id': timeslot.pk,
-            'title': timeslot.fields.start_time.split(':', 2).join(':'),
-            'start': timeslot.fields.date
+            'title': timeslot.fields.start.split(':', 2).join(':'),
+            'start': timeslot.fields.day
         }
         console.log(event)
         calendar.addEvent(event)
+        console.log(calendar.getEvents())
+
     });
-    document.getElementById('table-body').classList.add('d-none')
-    document.getElementById('votes-body').classList.add('d-none')
 })
 
 if (tablebtn) {
