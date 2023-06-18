@@ -69,8 +69,12 @@ calendarbtn.addEventListener('click', () => {
     document.getElementById('votes-body').classList.add('d-none')
 })
 
-tablebtn.addEventListener('click', () => {
-    document.getElementById('calendar').classList.add('d-none')
-    document.getElementById('table-body').classList.remove('d-none')
-    document.getElementById('votes-body').classList.add('d-none')
-})
+if (tablebtn) {
+    tablebtn.addEventListener('click', () => {
+        document.getElementById('calendar').classList.add('d-none')
+        document.getElementById('table-body').classList.remove('d-none')
+        document.getElementById('votes-body').classList.add('d-none')
+    })
+}
+
+

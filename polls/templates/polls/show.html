@@ -265,7 +265,9 @@
                     <div class="d-flex flex-row mb-5">
                         <button id="votes-op" class="mr-5 options">Votes</button>
                         <button id="calendar-op" class="mr-5 options">Calendar</button>
-                        <button id="table-op" class="mr-5 options">Table</button>
+                        {% if user.is_authenticated %}
+                            <button id="table-op" class="mr-5 options">Table</button>
+                        {% endif %}    
                     </div>
                     <div id="votes-body" class="">
                         <h3 class="ml-2 mb-3">Votes</h3>
@@ -295,36 +297,38 @@
                         {% endfor %}
                     </div>
                     <div id='calendar' class="d-none"></div>
-                    <div id="table-body" class="d-none col-md-12 table-responsive">
-                        <h3 class="ml-2 mb-3">Table</h3>
-                        <table class="table">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th></th>
-                                    {% for timeslot in poll.time_slots.all %}
-                                        <th class="text-center">{{timeslot.day|date:"D, M j"}}<br>
-                                            <span>{{timeslot.start|date:"P"}} - {{timeslot.end|date:"P"}}</span>
-                                        </th>
-                                    {% endfor %}
-                                </tr>
-                            </thead>
-                            <tbody class="">
-                                {% for guest in poll.guests.all %}
-                                    <tr id="guest-{{guest.id}}">
-                                        <td>{{guest.name}}</td>
+                    {% if user.is_authenticated %}
+                        <div id="table-body" class="d-none col-md-12 table-responsive">
+                            <h3 class="ml-2 mb-3">Table</h3>
+                            <table class="table">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th></th>
                                         {% for timeslot in poll.time_slots.all %}
-                                            <td onclick="updateTable(this)" id="slot-{{timeslot.id}}" class="text-center">
-                                                
-                                                {% if guest|has_voted:timeslot %}
-                                                    <i class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>
-                                                {% endif %}
-                                            </td>
+                                            <th class="text-center">{{timeslot.day|date:"D, M j"}}<br>
+                                                <span>{{timeslot.start|date:"P"}} - {{timeslot.end|date:"P"}}</span>
+                                            </th>
                                         {% endfor %}
                                     </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody class="">
+                                    {% for guest in poll.guests.all %}
+                                        <tr id="guest-{{guest.id}}">
+                                            <td>{{guest.name}}</td>
+                                            {% for timeslot in poll.time_slots.all %}
+                                                <td onclick="updateTable(this)" id="slot-{{timeslot.id}}" class="text-center">
+                                                    
+                                                    {% if guest|has_voted:timeslot %}
+                                                        <i class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>
+                                                    {% endif %}
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
                 </div>
                 {% if user.is_authenticated %}
                 <div class="col-md-3">
@@ -386,6 +390,9 @@
         var poll_pk = "{{poll.pk}}";
         var messagebtn = document.getElementById('message');
         var messages = document.getElementById('messages');
+        var guest = null;
+        var votes = null;
+        var guest_id = null;
 
         document.addEventListener("DOMContentLoaded", function () {
             const chatSocket = new WebSocket(
@@ -404,15 +411,17 @@
                 console.log("Error, connection closed");
             };
 
-            var guest_id = '{{request.GET.gid}}'
+            guest_id = '{{request.GET.gid}}'
             var guest_name = document.getElementById('guest_name')
 
             if (guest_id) {
-                axios.get(`http://127.0.0.1:8000/polls/${poll.pk}/guests/${guest_id}/`).then(data => {
+                axios.get(`http://127.0.0.1:8000/polls/{{poll.pk}}/guests/${guest_id}/`).then(data => {
                     guest = JSON.parse(data.data.guest)[0]
+                    votes = JSON.parse(data.data.votes)
+ 
                     guest_name.innerText = guest.fields.name
-                    guest.fields.choices.forEach(choice => {
-                        timeslot = document.getElementById('choice-' + choice)
+                    votes.forEach(vote => {
+                        timeslot = document.getElementById('choice-' + vote.fields.time_slot)
                         if (timeslot) {
                             timeslot.checked = true
                         }
@@ -481,6 +490,30 @@
             })
         });
 
+        function updateChoice(element, value = null) {
+            timeslot = value ? value : element.value
+            axios.defaults.xsrfHeaderName = "X-CSRFToken"
+            axios.defaults.xsrfCookieName = 'csrftoken'
+    
+            let data = new FormData();
+
+            var _method = 'post';
+            
+
+            votes.forEach(vote => {
+                if (parseInt(vote.fields.time_slot) == timeslot) {
+                    _method = 'delete';
+                }
+            })
+
+            data.append("_method", _method)
+    
+            data.append("csrfmiddlewaretoken", '{{csrf_token}}')
+            data.append('timeslot', timeslot)
+    
+            axios.post(`http://127.0.0.1:8000/polls/{{poll.pk}}/guests/${guest_id}/vote/`, data)
+                .then(data => location.reload())
+        }
 
     </script>
     <script src="{% static 'events/js/poll_settings.js' %}"></script>
