@@ -4,7 +4,9 @@ var tablebtn = document.getElementById('table-op')
 
 votesbtn.addEventListener('click', () => {
     document.getElementById('calendar').classList.add('d-none')
-    document.getElementById('table-body').classList.add('d-none')
+    if (tablebtn) {
+        document.getElementById('table-body').classList.add('d-none')
+    }
     document.getElementById('votes-body').classList.remove('d-none')
 })
 
