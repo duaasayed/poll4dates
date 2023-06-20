@@ -32,7 +32,7 @@ class Poll(models.Model):
     
     @property
     def guests_voted(self):
-        return self.guests.filter(votes__isnull=False)
+        return self.guests.filter(votes__isnull=False).distinct()
     
     @property
     def guests_waiting(self):
