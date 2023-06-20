@@ -160,7 +160,7 @@
                                     Add New Event
                                 </h5>
                                 <button id="modalClose1" type="button" class="close" data-dismiss="modal"
-                                    aria-label="Close">
+                                    aria-label="Close" style="color: white; border: none; background: none; font-size: 25px">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
@@ -168,7 +168,7 @@
                                 <p id="raw-date" class="text-center d-none"></p>
                                 <p id="date" class="text-center"></p>
                                 <p style="color: red;" id="error"></p>
-                                <div class="row justify-content-between">
+                                <div class="row justify-content-between mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Start Date:</label>
                                         <input type="time" id="start" class="form-control">
@@ -340,6 +340,7 @@
             closebtn.setAttribute('type', 'button')
             closebtn.setAttribute('id', raw_d.innerText + ',' + start)
             closebtn.setAttribute('onclick', 'removeEvent(this)')
+            closebtn.setAttribute('style', 'background:none; border:none; font-size: 25px')
             closebtn.innerHTML = '&times;'
 
             var div = document.createElement('div')
