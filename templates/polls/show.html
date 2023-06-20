@@ -1,11 +1,11 @@
-{% extends 'polls/base.html' %}
+{% extends 'base.html' %}
 {% block title %} <title>{{poll}}</title>{% endblock %}
 {% load static %}
 {% load polls_tags %}
 {% block content %}
 <main id="main">
     <section class="inner-page pt-4 mt-5" style="height: 1500px">
-        <div class="container col-md-12 mt-5">
+        <div class="container col-md-9 mt-5">
             {% if not user.is_authenticated and 'invite' in request.GET %}
                 <div class="modal fade show" id="guestModal" tabindex="-1" role="dialog" aria-labelledby="guestModalLabel"
                     aria-hidden="true">
@@ -74,7 +74,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row justify-content-between col-md-11 p-0 mx-auto mt-5 position-relative">
+            <div class="row justify-content-between col-md-12 p-0 mx-auto mt-5 position-relative">
                 <div class="col-md-7 shadow rounded mt-5 p-5">
                     <div class="row justify-content-between">
                         <div class="col-9">
@@ -172,7 +172,7 @@
                 </div>
             </div>
             {% if user.is_authenticated and user == poll.creator %}
-                <div class="accordion accordion-flush shadow rounded p-0 col-md-11 mx-auto d-flex mt-5"
+                <div class="accordion accordion-flush shadow rounded p-0 col-md-12 mx-auto d-flex mt-5"
                     id="accordionExample">
                     <div class="col-md-6 p-3 text-center accordion-item" style=" border-right: 2px solid #71c55d;">
                         <h3 class="accordion-header" id="flush-headingOne">
@@ -255,7 +255,7 @@
                     </div>
                 </div>
             {% endif %}
-            <div class="card mt-5 mb-5 py-5 p-md-5 col-md-12 mx-auto shadow d-md-flex flex-row justify-content-between"
+            <div class="shadow p-3 mb-5 bg-white rounded row col-md-12 mx-auto mt-5 d-md-flex flex-row justify-content-between"
             style="display: block;">
                 <div class="col-md-8 mr-3">
                     <p>Check the box to mark your preference for each date.<br>
@@ -296,7 +296,7 @@
                             </div>
                         {% endfor %}
                     </div>
-                    <div id='calendar' class="d-none"></div>
+                    <div id='calendar' class="d-none" style="max-height: 550px"></div>
                     {% if user.is_authenticated %}
                         <div id="table-body" class="d-none col-md-12 table-responsive">
                             <h3 class="ml-2 mb-3">Table</h3>
@@ -379,9 +379,9 @@
 {% endblock content %}
 
 {% block extrascripts %}
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="{% static 'fullcalendar/dist/index.global.js' %}"></script>
-
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    
     <script>
         var event_name = "{{poll.event_name}}";
         var event_details = "{{poll.event_details}}";
@@ -521,8 +521,7 @@
         }
 
     </script>
-    <script src="{% static 'events/js/poll_settings.js' %}"></script>
-    <script src="{% static 'events/js/invite_guests.js' %}"></script>
-    <script src="{% static 'fullcalendar/dist/index.global.js' %}"></script>
-    <script src="{% static 'events/js/votes_options.js' %}"></script>
+    <script src="{% static 'polls/js/poll_settings.js' %}"></script>
+    <script src="{% static 'polls/js/invite_guests.js' %}"></script>
+    <script src="{% static 'polls/js/votes_options.js' %}"></script>
 {% endblock extrascripts %}

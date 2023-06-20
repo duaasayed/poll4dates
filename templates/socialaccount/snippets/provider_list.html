@@ -16,7 +16,7 @@
         class="p-3" title="{{provider.name}}" class="socialaccount_provider {{provider.id}}"
         href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}">
         <button class="px-3" style="border: none; background-color: white;">
-            <img width="30px" class="mr-3" src="{% static 'events/img/icons/'|add:provider.name|lower|add:'.png' %}">
+            <img width="30px" class="mr-3" src="{% static 'polls/img/icons/'|add:provider.name|lower|add:'.png' %}">
             Sign in with {{provider.name}}
         </button>
     </a>

@@ -1,4 +1,4 @@
-{% extends 'polls/base.html' %}
+{% extends 'base.html' %}
 {% block title %} <title>Plan Event</title>{% endblock %}
 {% load static %}
 {% load polls_tags %}
@@ -7,8 +7,8 @@
     {% csrf_token %}
     <main>
         <section class="inner-page pt-4 mt-5">
-            <div class="container col-md-12 mt-5">
-                <div class="shadow p-3 mb-5 bg-white rounded row col-md-9 mx-auto">
+            <div class="shadow p-3 mb-5 bg-white mt-5 rounded row col-md-9 mx-auto">
+                <div class="mb-5 row col-md-12">
                     <div class="d-flex align-items-center justify-content-between col-md-9">
                         <div class="p-3 col-md-12">
                             <h4 class="mb-3">Event Details</h4>
