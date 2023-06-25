@@ -496,6 +496,10 @@
         });
 
         function updateChoice(element, value = null) {
+            if (guest == null)
+            {
+                guestModal.style.display = 'block';
+            }
             timeslot = value ? value : element.value
             axios.defaults.xsrfHeaderName = "X-CSRFToken"
             axios.defaults.xsrfCookieName = 'csrftoken'
