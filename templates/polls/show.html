@@ -154,6 +154,10 @@
                     <div class="chat-container mb-5" style="height: 205px;">
                         <div id="messages" class="d-flex flex-column-reverse"
                             style="min-height: 200px; max-height: 200px; overflow-y: scroll; position: relative;">
+                            {% for message in poll.messages.all %}
+                                <p>{{message.content}}</p>
+                                <span>{{message.sender}}</span>
+                            {% endfor %}
                         </div>
                         <div class="row justify-content-between mb-5 align-items-center">
                             <div class="col-md-8 ml-3">
@@ -403,9 +407,11 @@
             );
 
             chatSocket.onmessage = function(e) {
+                console.log(e)
                 const data = JSON.parse(e.data);
                 messages.insertAdjacentHTML('afterbegin', `<div>
                     <p>${data.message}</p>
+                    <span>${data.sender}</span>
                 </div>`)
                 console.log(data);
             };
@@ -435,8 +441,17 @@
             messagebtn.addEventListener('click', function () {
                 const messageInput = document.getElementById('messageContent')
                 const text_message = messageInput.value;
+                var sender = null;
+                if (guest == null)
+                {
+                    sender = "{{poll.creator.name}}"
+                }
+                else {
+                    sender = guest.fields.name
+                }
                 chatSocket.send(JSON.stringify({
-                    'message': text_message
+                    'message': text_message,
+                    'sender': sender,
                 }));
                 messageInput.value = ''
             })

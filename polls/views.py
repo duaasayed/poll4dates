@@ -65,7 +65,7 @@ class PollDetail(DetailView):
         current_user = self.request.user
         queryset = Poll.objects.prefetch_related('time_slots')
         if current_user.is_authenticated:
-            queryset = queryset.filter(creator=current_user)
+            queryset = queryset.prefetch_related('messages').filter(creator=current_user)
         return queryset
     
     def get(self, request, *args, **kwargs):

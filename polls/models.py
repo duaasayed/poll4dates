@@ -62,3 +62,12 @@ class Vote(models.Model):
     time_slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE, related_name='votes')
     guest = models.ForeignKey(Guest, on_delete=models.CASCADE, related_name='votes')
     
+
+class Message(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='messages')
+    sender = models.CharField(max_length=50)
+    content = models.CharField(max_length=250)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['sent_at']
