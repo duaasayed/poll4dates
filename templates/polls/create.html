@@ -55,7 +55,7 @@
                                                 {{form.fields.rsvp_by.label}}
                                         </label>
 
-                                        <input type="datetime-local" name="rsvp_by"
+                                        <input type="datetime-local" name="rsvp_by" id="rsvp_field"
                                             value="{% if form.rsvp_by.value %} {{form.rsvp_by.value}} {% else %} {{request.session.form_data.rsvp_by}} {% endif %}"
                                             class="form-control" required>
                                         {% if form.errors and 'rsvp_by' in form.errors%}
@@ -364,6 +364,18 @@
             }
         });
 
+        
+
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = now.getMonth() + 1;
+        var day = now.getDate();
+        var hours = now.getHours();
+        var minutes = now.getMinutes();
+        var minDate = year + '-' + addLeadingZero(month) + '-' + addLeadingZero(day) + 'T' + addLeadingZero(hours) + ':' + addLeadingZero(minutes);
+
+        document.getElementById("rsvp_field").setAttribute("min", minDate);
+
     });
 
     function removeEvent(element) {
@@ -376,6 +388,14 @@
             }
         });
     }
+
+    function addLeadingZero(number) {
+        if (number < 10) {
+            return '0' + number;
+        }
+        return number;
+    }
+    
 
 </script>
 {% endblock extrascripts %}
