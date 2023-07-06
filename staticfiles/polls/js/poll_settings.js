@@ -142,14 +142,31 @@ if (openPoll) {
         openModal()
         editModalLabel('Remove Date/Time')
         //document.getElementById('edit-form').action = ""
-        var content = document.getElementById('modalContent')
-        content.innerHTML = content.innerHTML + '<div class="mb-2"><p class="text-center">You are about to re-open a poll which you already closed. If you have already picked/selected a date/time for your event it will be un-selected.</p>'
-            + '<label class="form-label">RSVP by</label>'
-            + '<input type="datetime-local" class="form-control" name="rsvp_by" id="re_open"><br>'
-            + '<input type="checkbox" name="notify">'
-            + '<label type="form-label ml-3"> Notify guests with email</label></div>'
-        document.getElementById('re_open').setAttribute('min', minDate)
+
+        var inputdiv = createDiv()
+        var p1 = createParagraph("You are about to re-open a poll which you already closed. If you have already picked/selected a date/time for your event it will be un-selected.")
+        var l1 = createLabel("RSVP by", "form-label")
+        var in1 = createInput("datetime-local", "rsvp_by", "", "")
+        in1.setAttribute("id", "re_open")
+        in1.setAttribute('min', minDate)
+        var br = document.createElement('br')
+        var in2 = createInput("checkbox", "notify", "", "")
+        var l2 = createLabel(" Notify guests with email", "form-label")
+
+        inputdiv.append(p1)
+        inputdiv.append(l1)
+        inputdiv.append(in1)
+        inputdiv.append(br)
+        inputdiv.append(in2)
+        inputdiv.append(l2)
+
+        var form = document.getElementById('modalContent')
+        if (form.children.length > 2) {
+            form.removeChild(form.children[2])
+        }
+        form.append(inputdiv)
         submitbtn.innerText = 'Save'
+
     })
 }
 
