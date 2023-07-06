@@ -172,17 +172,4 @@ def get_guest(request, poll_pk=None, guest_pk=None):
     guest = serializers.serialize('json', [instance])
     votes = serializers.serialize('json', instance.votes.all())
     return JsonResponse({'guest': guest, 'votes': votes})
-
-
-def vote(request, poll_pk=None, guest_pk=None):
-    guest = Guest.objects.get(pk=guest_pk)
-
-    if '_method' in request.POST:
-        timeslot = request.POST['timeslot']
-        if request.POST['_method'] == 'post':
-            guest.votes.create(time_slot_id=timeslot)
-        elif request.POST['_method'] == 'delete':
-            guest.votes.filter(time_slot_id=timeslot).delete()
-
-    return JsonResponse({'guest': serializers.serialize('json', [guest])})
     

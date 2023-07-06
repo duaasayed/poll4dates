@@ -1,7 +1,7 @@
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 import json
-from .models import Message, Guest
+from .models import Message, Guest, Poll, TimeSlot
 from accounts.models import User
 from django.core import serializers
 
@@ -49,7 +49,7 @@ class ChatConsumer(WebsocketConsumer):
 
 
 
-class DataConsumer(WebsocketConsumer):
+class VotingConsumer(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['pk']
         self.room_group_name = f"poll-{self.room_name}"
@@ -68,9 +68,27 @@ class DataConsumer(WebsocketConsumer):
 
     def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        timeslot = TimeSlot.objects.select_related('poll').get(pk=text_data_json['timeslot_id'])
+        guest_id = text_data_json['guest_id']
+
+        vote, created = timeslot.votes.get_or_create(guest_id=guest_id)
+        if not created:
+            vote.delete()
 
         async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name, {'type': 'chat_message', 'message': message}
+            self.room_group_name, {
+                'type': 'update_votes', 
+                'timeslot': timeslot.id,
+                'max_vote': timeslot.poll.max_vote,
+                'votes_count': timeslot.votes_count,
+                'voter_id': guest_id 
+            }
         )
-        return super().receive(text_data, bytes_data)
+        
+    def update_votes(self, event):
+        self.send(text_data=json.dumps({
+            'timeslot': event['timeslot'],
+            'max_vote': event['max_vote'],
+            'votes_count': event['votes_count'],
+            'voter_id': event['voter_id']
+        }))

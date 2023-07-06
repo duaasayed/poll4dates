@@ -317,7 +317,7 @@
                                         {{timeslot.end|date:"P"}}
                                     </span>
                                     <div class="progress" style="height: 40px; border-radius: 50px; font-size: 16px;">
-                                        <div class="progress-bar" role="progressbar" aria-valuenow="{{timeslot.votes_count}}"
+                                        <div class="progress-bar" role="progressbar" id="progress-{{timeslot.id}}" aria-valuenow="{{timeslot.votes_count}}"
                                             aria-valuemin="0" aria-valuemax="{{poll.max_vote}}"
                                             style="width: {% widthratio timeslot.votes_count poll.max_vote 100 %}%; background-color: #71c55d;">
                                             &#10003; {{timeslot.votes_count}}
@@ -414,6 +414,7 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     
     <script>
+        
         var event_name = "{{poll.event_name}}";
         var event_details = `{{poll.event_details}}`;
         var event_location = "{{poll.event_location}}";
@@ -428,13 +429,17 @@
         var guest_id = null;
         var csrf_token = "{{csrf_token}}"
 
-        
+        const voteSocket = new WebSocket(
+            `ws://${window.location.host}/ws/voting/${poll_pk}/`
+        )
 
         document.addEventListener("DOMContentLoaded", function () {
             messages.scrollTop = messages.scrollHeight;
             const chatSocket = new WebSocket(
                 `ws://${window.location.host}/ws/chat/${poll_pk}/`
             );
+
+            
 
             chatSocket.onmessage = function(e) {
                 const data = JSON.parse(e.data);
@@ -463,7 +468,35 @@
                 
             };
 
+            voteSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data)
+                var timeslot = data.timeslot
+                var timeslotDiv = document.getElementById(`choice-${timeslot}`)
+                
+                if (timeslotDiv && parseInt(guest_id) == data.voter_id)
+                {
+                    if (timeslotDiv.checked) {
+                        timeslotDiv.checked = true
+                    }
+                    else {
+                        timeslotDiv.checked = false
+                    }
+                }
+
+                var progress = document.getElementById(`progress-${timeslot}`)
+
+                progress.setAttribute('aria-valuenow', data.votes_count)
+                progress.setAttribute('aria-valuemax', data.max_vote)
+                progress.innerText =  `✓ ${data.votes_count}`
+                var width = (data.votes_count / data.max_vote) * 100;
+                progress.style.width = `${width}%`
+            }
+
             chatSocket.onClose = function(e) {
+                console.log("Error, connection closed");
+            };
+
+            voteSocket.onClose = function(e) {
                 console.log("Error, connection closed");
             };
 
@@ -567,27 +600,11 @@
                 guestModal.style.display = 'block';
             }
             timeslot = value ? value : element.value
-            axios.defaults.xsrfHeaderName = "X-CSRFToken"
-            axios.defaults.xsrfCookieName = 'csrftoken'
-    
-            let data = new FormData();
 
-            var _method = 'post';
-            
-
-            votes.forEach(vote => {
-                if (parseInt(vote.fields.time_slot) == timeslot) {
-                    _method = 'delete';
-                }
-            })
-
-            data.append("_method", _method)
-    
-            data.append("csrfmiddlewaretoken", '{{csrf_token}}')
-            data.append('timeslot', timeslot)
-    
-            axios.post(`http://127.0.0.1:8000/polls/{{poll.pk}}/guests/${guest_id}/vote/`, data)
-                .then(data => location.reload())
+            voteSocket.send(JSON.stringify({
+                'timeslot_id': parseInt(timeslot),
+                'guest_id': parseInt(guest_id),
+            }));
         }
 
     </script>

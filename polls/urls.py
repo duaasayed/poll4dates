@@ -14,5 +14,4 @@ urlpatterns = [
     path("polls/<int:pk>/invite/", views.invite, name='invite'),
     path("polls/<int:pk>/guests/", views.add_guest, name='add_guest'),
     path("polls/<int:poll_pk>/guests/<int:guest_pk>/", views.get_guest, name='get_guest'),
-    path("polls/<int:poll_pk>/guests/<int:guest_pk>/vote/", views.vote, name='vote'),
 ]
