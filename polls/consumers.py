@@ -1,7 +1,9 @@
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 import json
-from .models import Message
+from .models import Message, Guest
+from accounts.models import User
+from django.core import serializers
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -22,9 +24,15 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
-        sender = text_data_json['sender']
+        sender = int(text_data_json['sender'])
+        sender_type = text_data_json['sender_type']
 
-        Message.objects.create(poll_id=int(self.room_name), sender=sender, content=message)
+        if sender_type == 'user':
+            sender = User.objects.get(pk=sender)
+        else:
+            sender = Guest.objects.get(pk=sender)
+
+        Message.objects.create(poll_id=int(self.room_name), content_sender=sender, content=message)
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, {
@@ -36,7 +44,7 @@ class ChatConsumer(WebsocketConsumer):
 
     def chat_message(self, event):
         message = event['message']
-        sender = event['sender']
+        sender = serializers.serialize('json', [event['sender']])
         self.send(text_data=json.dumps({'message': message, 'sender': sender}))
 
 

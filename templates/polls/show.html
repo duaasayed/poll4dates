@@ -148,27 +148,35 @@
                             </p>
                     {% endif %}
                 </div>
-
                 <div class="mt-5 p-3 pb-4 rounded col-md-4 ml-md-5 mr-0 shadow" style="box-sizing: border-box;">
                     <h3 class="text-center"><i class="bi bi-chat-fill" style="color: #71c55d;"></i> Message</h3>
                     <div class="chat-container mb-5" style="height: 205px;">
                         <div id="messages" class=""
                             style="min-height: 200px; max-height: 200px; overflow-y: scroll; position: relative;">
                             {% for message in poll.messages.all %}
-                                {% if message.sender == poll.creator.name %}
+                                {% if message.content_type.model == 'user' and user.is_authenticated %}
                                     <div class="col-md-12">
                                         <div class="col-md-9 mb-3" style="float: right;">
-                                            <p>{{message.sender}}</p>
+                                            <p>{{message.content_sender.name}}</p>
                                             <div class="rounded p-3" style="background: #71c55d;">
                                                 <span>{{message.content}}</span>
                                             </div>
                                         </div>
                                     </div>
-                                    
+                                
+                                {% elif message.content_type.model == 'guest' and request.GET.gid|to_int == message.sender_id %}
+                                    <div class="col-md-12">
+                                        <div class="col-md-9 mb-3" style="float: right;">
+                                            <p>{{message.content_sender.name}}</p>
+                                            <div class="rounded p-3" style="background: #71c55d;">
+                                                <span>{{message.content}}</span>
+                                            </div>
+                                        </div>
+                                    </div>  
                                 {% else %}
                                 <div class="col-md-12">
                                     <div class="col-md-9 mb-3" style="float: left">
-                                        <p>{{message.sender}}</p>
+                                        <p>{{message.content_sender.name}}</p>
                                         <div class="rounded shadow p-3" style="background: white;">
                                             <span>{{message.content}}</span>
                                         </div>
@@ -178,7 +186,7 @@
                                 
                             {% endfor %}
                         </div>
-                        <div class="row justify-content-between mb-5 align-items-center">
+                        <div class="row justify-content-between mb-5 mt-3 align-items-center">
                             <div class="col-md-8 ml-3">
                                 <textarea id="messageContent" class="form-control" rows="2"
                                 placeholder="Leave a message"></textarea>
@@ -430,26 +438,29 @@
 
             chatSocket.onmessage = function(e) {
                 const data = JSON.parse(e.data);
-                if (data.sender == "{{poll.creator.name}}")
-                {
-                    messages.insertAdjacentHTML('beforeend', `<div class="col-md-12">
-                        <div class="col-md-9 mb-3" style="float: right;">
-                            <p>${data.sender}</p>
-                            <div class="rounded p-3" style="background: #71c55d;">
-                                <span>${data.message}</span>
-                            </div>
-                        </div>
-                    </div>`)
+                var sender = JSON.parse(data.sender)[0]
+                var color = null;
+                var float = 'right';
+                if (guest && sender.model == 'polls.guest' && sender.pk == guest_id) {
+                    color = '#71c55d';
+                } else if (sender.model == 'accounts.user' && guest == null) {
+                    color = '#71c55d';
                 } else {
-                    messages.insertAdjacentHTML('beforeend', `<div class="col-md-12">
-                        <div class="col-md-9 mb-3" style="float: left">
-                            <p>${data.sender}</p>
-                            <div class="rounded shadow p-3" style="background: white;">
-                                <span>${data.message}</span>
-                            </div>
-                        </div>
-                    </div>`)
+                    color = 'white';
+                    float = 'left';
                 }
+
+                messages.insertAdjacentHTML('beforeend', `<div class="col-md-12">
+                    <div class="col-md-9 mb-3" style="float: ${float};">
+                        <p>${sender.fields.name}</p>
+                        <div class="rounded shadow p-3" style="background: ${color}">
+                            <span>${data.message}</span>
+                        </div>
+                    </div>
+                </div>`)
+
+                messages.scrollTop = messages.scrollHeight;
+                
             };
 
             chatSocket.onClose = function(e) {
@@ -478,16 +489,20 @@
                 const messageInput = document.getElementById('messageContent')
                 const text_message = messageInput.value;
                 var sender = null;
+                var sender_type = null;
                 if (guest == null)
                 {
-                    sender = "{{poll.creator.name}}"
+                    sender = "{{poll.creator.id}}"
+                    sender_type = 'user'
                 }
                 else {
-                    sender = guest.fields.name
+                    sender = guest.pk
+                    sender_type = 'guest'
                 }
                 chatSocket.send(JSON.stringify({
                     'message': text_message,
                     'sender': sender,
+                    'sender_type': sender_type
                 }));
                 messageInput.value = ''
             })

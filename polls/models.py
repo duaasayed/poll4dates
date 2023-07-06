@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 import string
 import secrets 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 def generate_token(length):
     alphabet = string.ascii_letters + string.digits
@@ -65,7 +67,9 @@ class Vote(models.Model):
 
 class Message(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='messages')
-    sender = models.CharField(max_length=50)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    sender_id = models.BigIntegerField()
+    content_sender = GenericForeignKey('content_type', 'sender_id')
     content = models.CharField(max_length=250)
     sent_at = models.DateTimeField(auto_now_add=True)
 

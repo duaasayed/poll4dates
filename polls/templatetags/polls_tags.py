@@ -26,3 +26,8 @@ def queryset_as_json(qs):
 @register.filter
 def has_voted(guest, timeslot):
     return guest.votes.filter(time_slot=timeslot).exists()
+
+
+@register.filter(name='to_int')
+def to_int(value):
+    return int(value)
