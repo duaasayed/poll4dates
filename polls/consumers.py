@@ -61,7 +61,7 @@ class VotingConsumer(WebsocketConsumer):
         self.accept()
 
 
-    def disconnect(self):
+    def disconnect(self, code):
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name, self.channel_name
         )
@@ -70,6 +70,7 @@ class VotingConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         timeslot = TimeSlot.objects.select_related('poll').get(pk=text_data_json['timeslot_id'])
         guest_id = text_data_json['guest_id']
+        vote_method = text_data_json['vote_method']
 
         vote, created = timeslot.votes.get_or_create(guest_id=guest_id)
         if not created:
@@ -81,14 +82,23 @@ class VotingConsumer(WebsocketConsumer):
                 'timeslot': timeslot.id,
                 'max_vote': timeslot.poll.max_vote,
                 'votes_count': timeslot.votes_count,
-                'voter_id': guest_id 
+                'voter_id': guest_id,
+                'vote_method': vote_method,
+                'waiting_guests': timeslot.poll.guests_waiting,
+                'voters': timeslot.poll.guests_voted
             }
         )
         
     def update_votes(self, event):
+        waiting_guests = serializers.serialize('json', event['waiting_guests'])
+        voters = serializers.serialize('json', event['voters'])
+        
         self.send(text_data=json.dumps({
             'timeslot': event['timeslot'],
             'max_vote': event['max_vote'],
             'votes_count': event['votes_count'],
-            'voter_id': event['voter_id']
+            'voter_id': event['voter_id'],
+            'vote_method': event['vote_method'],
+            'waiting_guests': waiting_guests,
+            'voters': voters
         }))

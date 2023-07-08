@@ -27,7 +27,7 @@ calendarbtn.addEventListener('click', () => {
             console.log(cell.event)
             var checkbox = document.createElement('input')
             checkbox.type = 'checkbox'
-            checkbox.setAttribute('id', 'date-' + calendar.getDate())
+            checkbox.setAttribute('id', 'date-' + cell.event.id)
             checkbox.setAttribute('style', 'transform: scale(1.5);accent-color:green')
             cell.el.children[0].children[0].append(checkbox)
             checkbox.value = cell.event.id
@@ -37,26 +37,24 @@ calendarbtn.addEventListener('click', () => {
                     if ((parseInt(vote.fields.time_slot) == cell.event.id)) {
                         checkbox.checked = true
                     }
+
+                    var choice = document.getElementById(`choice-${cell.event.id}`)
+                    checkbox.checked = choice.checked
                 })
                 checkbox.addEventListener('change', () => {
-                    timeslot = checkbox.value
-                    axios.defaults.xsrfHeaderName = "X-CSRFToken"
-                    axios.defaults.xsrfCookieName = 'csrftoken'
+                    var timeslot = checkbox.value
 
-                    let data = new FormData();
-                    var _method = 'post'
+                    if (guest == null) {
+                        guestModal.style.display = 'block';
+                    }
 
-                    votes.forEach(vote => {
-                        if (parseInt(vote.fields.time_slot) == timeslot) {
-                            _method = 'delete'
-                        }
-                    })
-                    data.append("_method", _method)
-                    data.append("csrfmiddlewaretoken", csrf_token)
-                    data.append('timeslot', timeslot)
 
-                    axios.post(`http://127.0.0.1:8000/polls/${poll_pk}/guests/${guest_id}/vote/`, data)
-                        .then(data => location.reload())
+                    voteSocket.send(JSON.stringify({
+                        'timeslot_id': parseInt(timeslot),
+                        'guest_id': parseInt(guest_id),
+                        'vote_method': 'calendar'
+                    }));
+
                 })
             }
         }

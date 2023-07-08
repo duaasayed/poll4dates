@@ -347,10 +347,9 @@
                                         <tr id="guest-{{guest.id}}">
                                             <td>{{guest.name}}</td>
                                             {% for timeslot in poll.time_slots.all %}
-                                                <td onclick="updateTable(this)" id="slot-{{timeslot.id}}" class="text-center">
-                                                    
+                                                <td id="slot-{{timeslot.id}}-guest-{{guest.id}}" class="text-center">
                                                     {% if guest|has_voted:timeslot %}
-                                                        <i class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>
+                                                        <i id="tick-slot-{{timeslot.id}}-guest-{{guest.id}}" class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>
                                                     {% endif %}
                                                 </td>
                                             {% endfor %}
@@ -364,14 +363,18 @@
                 {% if user.is_authenticated %}
                 <div class="col-md-3">
                     <p>Your guests do not see the email addresses. Click on a guest for details.</p>
-                    <strong>Voted ({{poll.guests_voted.count}}):</strong><br>
-                    {% for guest in poll.guests_voted %}
-                        <span>{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
-                    {% endfor %}
-                    <strong>On waiting: ({{poll.guests_waiting.count}}):</strong><br>    
-                    {% for guest in poll.guests_waiting %}
-                        <span>{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
-                    {% endfor %}
+                    <strong id="voters-count">Voted ({{poll.guests_voted.count}}):</strong><br>
+                    <div id="voters">
+                        {% for guest in poll.guests_voted %}
+                            <span>{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
+                        {% endfor %}
+                    </div>
+                    <strong id="waiting-count">On waiting: ({{poll.guests_waiting.count}}):</strong><br>    
+                    <div id="waiting">
+                        {% for guest in poll.guests_waiting %}
+                            <span>{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
+                        {% endfor %}
+                    </div>
                 </div>
                 {% else %}
                 <div class="col-md-3">
@@ -470,16 +473,25 @@
 
             voteSocket.onmessage = function(e) {
                 const data = JSON.parse(e.data)
+                console.log(data)
                 var timeslot = data.timeslot
                 var timeslotDiv = document.getElementById(`choice-${timeslot}`)
-                
-                if (timeslotDiv && parseInt(guest_id) == data.voter_id)
+                var voters = document.getElementById('voters')
+                var waiting = document.getElementById('waiting')
+                var waiting_count = document.getElementById('waiting-count')
+                var voters_count = document.getElementById('voters-count')
+                var tick = document.getElementById(`tick-slot-${timeslot}-guest-${data.voter_id}`)
+
+                if (parseInt(guest_id) == data.voter_id)
                 {
-                    if (timeslotDiv.checked) {
-                        timeslotDiv.checked = true
+                    if (data.vote_method == 'calendar')
+                    {
+                        timeslotDiv.checked = !timeslotDiv.checked
                     }
-                    else {
-                        timeslotDiv.checked = false
+
+                    if (data.vote_method == 'checkbox')
+                    {
+                        timeslotDiv = timeslotDiv.checked
                     }
                 }
 
@@ -487,9 +499,59 @@
 
                 progress.setAttribute('aria-valuenow', data.votes_count)
                 progress.setAttribute('aria-valuemax', data.max_vote)
-                progress.innerText =  `✓ ${data.votes_count}`
-                var width = (data.votes_count / data.max_vote) * 100;
-                progress.style.width = `${width}%`
+                if (data.votes_count == 0) {
+                    progress.innerText = ""
+                    progress.style.background = "#e9ecef";
+                } else {
+                    progress.style.background = "#71c55d"
+                    progress.innerText =  `✓ ${data.votes_count}`
+                    var width = (data.votes_count / data.max_vote) * 100;
+                    progress.style.width = `${width}%`
+                    
+                }
+                
+                var waiting_guests = JSON.parse(data.waiting_guests)
+                var voted_guests = JSON.parse(data.voters)
+
+                var new_waiting = ''
+                var new_voters = ''
+
+                waiting_guests.forEach(w => {
+                    new_waiting += `<span>${w.fields.name}`
+                    if (w.fields.email) {
+                        new_waiting += ` (${w.fields.email})</span><br>`
+                    } else {
+                        new_waiting += `</span><br>`
+                    }
+                })
+
+                voted_guests.forEach(v => {
+                    new_voters += `<span>${v.fields.name}`
+                    if (v.fields.email) {
+                        new_voters += ` (${v.fields.email})</span><br>`
+                    } else {
+                        new_voters += `</span><br>`
+                    }
+                })
+
+                waiting.innerHTML = new_waiting
+                voters.innerHTML = new_voters
+
+                waiting_count.innerText = `On waiting (${waiting_guests.length}):`
+                voters_count.innerText = `Voted (${voted_guests.length})`
+
+                if (tick ) {
+                    if (tick.style.display == "none") {
+                        tick.style.display = "block"
+                    } else {
+                        tick.style.display = 'none';
+                    }
+                    
+                } else {
+                    var slot = document.getElementById(`slot-${timeslot}-guest-${data.voter_id}`)
+                    console.log(slot)
+                    slot.innerHTML = `<i id="tick-slot-${timeslot}-guest-${data.voter_id}" class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>`
+                }
             }
 
             chatSocket.onClose = function(e) {
@@ -604,6 +666,7 @@
             voteSocket.send(JSON.stringify({
                 'timeslot_id': parseInt(timeslot),
                 'guest_id': parseInt(guest_id),
+                'vote_method': 'checkbox'
             }));
         }
 
