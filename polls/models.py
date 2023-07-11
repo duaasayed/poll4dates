@@ -4,6 +4,7 @@ import string
 import secrets 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
 def generate_token(length):
     alphabet = string.ascii_letters + string.digits
@@ -41,6 +42,25 @@ class Poll(models.Model):
         return self.guests.filter(votes__isnull=True)
 
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        crontab_schedule = CrontabSchedule.objects.create(
+            minute=self.rsvp_by.minute,
+            hour=self.rsvp_by.hour,
+            day_of_week=self.rsvp_by.strftime('%w'),
+            day_of_month=self.rsvp_by.day,
+            month_of_year=self.rsvp_by.month,
+            timezone='Africa/Cairo'
+        )
+
+        PeriodicTask.objects.create(
+            name=f'Send result email to poll {self.id} creator and guests',
+            task='polls.tasks.fetch_result_and_send_email',
+            args=[self.id],
+            crontab=crontab_schedule,
+        )
+
+
 class TimeSlot(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='time_slots')
     day = models.DateField()
@@ -75,3 +95,5 @@ class Message(models.Model):
 
     class Meta:
         ordering = ['sent_at']
+
+    
