@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load i18n %}
 {% load account socialaccount %}
 {% block title %}<title>Sign In</title>{% endblock %}
 {% block content %}
@@ -11,53 +10,42 @@
                     <h3 class="text-center">Sign In</h3>
                 </div>
                 <div class="card-body">
-
                     {% get_providers as socialaccount_providers %}
                     {% if socialaccount_providers %}
-                    <p>{% blocktrans with site.name as site_name %}Please sign in with one
-                        of your existing third party accounts. Or, <a href="{{ signup_url }}">sign up</a>
-                        for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
+                        <p>
+                            {% with site.name as site_name %}
+                                Please sign in with one of your existing third party accounts. Or, 
+                                <a href="{{ signup_url }}">sign up</a>
+                                for a {{ site_name }} account and sign in below:
+                            {% endwith %}
+                        </p>
 
                     <div class="text-center mb-5 mt-5">
                         <ul class="pl-0" style="list-style-type: none;">
                             {% include "socialaccount/snippets/provider_list.html" with process="login" %}
                         </ul>
-
-                        <div class="login-or text-center">--- {% trans 'or' %} ---</div>
+                        <div class="login-or text-center">--- or ---</div>
                     </div>
 
                     {% include "socialaccount/snippets/login_extra.html" %}
 
                     {% else %}
-                    <p>{% blocktrans %}If you have not created an account yet, then please
-                        <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}
-                    </p>
+                        <p>
+                            If you have not created an account yet, then please
+                            <a href="{{ signup_url }}">sign up</a> first.
+                        </p>
                     {% endif %}
+
                     <form class="login text-center" method="POST" action="{% url 'account_login' %}">
                         {% csrf_token %}
+
                         {% for error in form.non_field_errors %}
-                        <p style="color: red">{{ error|escape }}</p>
+                            <p style="color: red">{{ error|escape }}</p>
                         {% endfor %}
-                        <div class="mb-3">
-                            <label class="form-label" for="id_login"><i class="bi bi-person"></i> Email</label>
-                            <input class="form-control" type="email" name="login" autocomplete="email" maxlength="150"
-                                required id="id_login">
-                            {% if form.errors and 'email' in form.errors %}
-                            {% for error in form.errors.email %}
-                            <p style="color: red">{{ error|escape }}</p>
-                            {% endfor %}
-                            {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="id_password"><i class="bi bi-lock"></i> Password</label>
-                            <input class="form-control" type="password" name="password" autocomplete="current-password"
-                                required id="id_password">
-                            {% if form.errors and 'password' in form.errors %}
-                            {% for error in form.errors.password %}
-                            <p style="color: red">{{ error|escape }}</p>
-                            {% endfor %}
-                            {% endif %}
-                        </div>
+
+                        {% include "account/snippets/form_input.html" with label="Email" name="login" type="email" icon="person" %}
+                        {% include "account/snippets/form_input.html" with label="Password" name="password" type="password" icon="lock" autocomplete="current-password" %}
+                        
                         {% if redirect_field_value %}
                             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
                         {% endif %}
@@ -65,14 +53,14 @@
                         <button class="primaryAction btn-get-started mb-0 d-inline col-md-4" type="submit">
                             Sign In
                         </button>
+
                         <br>
+                        
                         <a class="button secondaryAction small text-black" href="/accounts/password/reset/">
                             Forgot <span style="color:#71c55d">Password?</span>
                         </a>
                     </form>
                 </div>
-
-
             </div>
         </div>
     </section>

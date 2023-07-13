@@ -1,0 +1,15 @@
+{% load static %}
+{% load accounts_tags %}
+<div class="mb-3">
+    
+    <label class="form-label" for="id_{{name}}"><i class="bi bi-{{icon}}"></i> {{label}}</label>
+    {% with field_value=form|get_obj_value:name %}
+        <input class="form-control" type="{{type}}" name="{{name}}" 
+        autocomplete="{% if autocomplete %} {{autocomplete}} {% else %} {{name}} {% endif %}" 
+        maxlength="150" required id="id_{{name}}" 
+        value="{% if field_value and name != 'password' and name != 'password1' and name != 'password2' %}{{ field_value }}{% endif %}">
+    {% endwith %}
+
+    {% include "account/snippets/field_errors.html" with field=name %}
+
+</div>
