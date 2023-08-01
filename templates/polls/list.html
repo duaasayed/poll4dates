@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %} <title>My Polls</title>{% endblock %}
+{% load static %}
+{% block content %}
+<main>
+    <section class="inner-page pt-4 mt-5">
+        <div class="container col-md-12 mt-5">
+            {% for poll in polls %}
+                <div class="shadow mb-5 bg-white rounded row col-md-6 mx-auto p-0">
+                    <div class="p-3">
+                        <h4>{{poll.event_name}}</h4>
+                        <p>Organized by: {{poll.event_organizer}}</p>
+                        <p><i class="bi bi-geo-alt-fill" style="color: #71c55d"></i> {{poll.event_location}}</p>
+                        <p><i class="bi bi-circle-fill" style="color: {% if poll.ended %} #696969	 
+                            {% else %} #71c55d {% endif %}"></i> RSVP by: {{poll.rsvp_by}}</p>
+                    </div>
+
+                    <div style="background-color: #71c55d;" class="rounded p-3 text-center">
+                        <a href="{% url 'polls:poll_detail' poll.pk %}"
+                            style="color: white; font-weight: bold; text-decoration: none;">
+                            View Poll
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}

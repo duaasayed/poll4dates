@@ -1,0 +1,677 @@
+{% extends 'base.html' %}
+{% block title %} <title>{{poll}}</title>{% endblock %}
+{% load static %}
+{% load polls_tags %}
+{% block content %}
+<main>
+    <section class="inner-page pt-4 mt-5">
+        <div class="container col-md-9 mt-5">
+            {% if not user.is_authenticated and 'invite' in request.GET %}
+                <div class="modal fade show" id="guestModal" tabindex="-1" role="dialog" aria-labelledby="guestModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background-color: #71c55d; color: white;">
+                                <h5 class="modal-title" id="guestModalLabel">Add your name to the poll</h5>
+                                <button id="closeGuestModal" type=" button" class="close" data-dismiss="modal"
+                                    aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+
+                            <form id="guest-form" method="post" action="{% url 'polls:add_guest' poll.pk %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Name</label>
+                                        <input type="text" name="name" id="guest-name" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" name="email" id="guest-email" class="form-control">
+                                    </div>
+                                    <div class="mb-3">
+                                        <p>Event updates will be sent to the email address you provide. Please check your
+                                            inbox for an email verification link to start receiving updates.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" id="add-guest" class="btn btn-get-started">OK</button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="modal fade show" id="linkModal" tabindex="-1" role="dialog" aria-labelledby="linkModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background-color: #71c55d; color: white;">
+                            <h5 class="modal-title" id="linktModalLabel">Your Personal Link</h5>
+                            <button id="closeLinkModal" type=" button" class="close" data-dismiss="modal"
+                                aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-center">Copy and save this link to access this poll later. You can update
+                                your vote anytime while the poll is still open.
+                            </p>
+                            <div style="background-color: #D3D3D3;" class="p-4 text-left rounded">
+                                <p id="link"></p>
+                                <p id="copyLink" class="text-center" style="color: blue; cursor: pointer;">Copy</p>
+                            </div>
+                            <p class="text-center">
+                                You can access this dialog from a link next to your name in the poll.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="ok" class="btn btn-get-started">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-between col-md-12 p-0 mx-auto mt-5 position-relative">
+                <div class="col-sm-12 col-m-12 col-lg-7 shadow rounded mt-5 p-5">
+                    <div class="row justify-content-between">
+                        <div class="col-9">
+                            <h4>{{poll}}</h4>
+                            <p>Organizer: {{poll.event_organizer}}</p>
+                        </div>
+                        <div class="col-2">
+                            <div id="options-div" class="d-none position-absolute"
+                                style="z-index: 100; background-color: white; margin-left: -180px; margin-right: 10px;">
+                                <ul style="list-style-type: none; width: 250px; border: 1px solid #92d283;"
+                                    class="p-0 mb-0">
+                                    {% if not request.GET.id %}
+                                        <li id="editTitle" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-tag-fill"></i> Edit Name
+                                        </li>
+                                        <li id="editDetails" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-justify-left"></i> Edit Details
+                                        </li>
+                                        <li id="editLocation" style="border: 1px solid white;" class="p-3">
+                                            <i class="bi bi-geo-alt-fill"></i> Update Location
+                                        </li>
+                                        <li id="addDate" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-calendar-plus-fill"></i> Add Date/Time
+                                        </li>
+                                        <li id="removeDate" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-calendar-minus-fill"></i> Remove Date/Time
+                                        </li>
+                                        <li id="editRsvp" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-calendar2-check-fill"></i> Update RSVP Date
+                                        </li>
+                                        {% if poll.ended %}
+                                            <li id="openPoll" style="border: 1px solid white" class="p-3">
+                                                <i class="bi bi-calendar2-check-fill"></i> Re-open Poll
+                                            </li>
+                                            {% else %}
+                                                <li id="closePoll" style="border: 1px solid white" class="p-3">
+                                                    <i class="bi bi-dash-circle"></i> Close Poll now
+                                                </li>
+                                        {% endif %}
+                                        <li id="deletePoll" style="border: 1px solid white" class="p-3">
+                                            <i class="bi bi-trash3-fill"></i> Delete Poll
+                                        </li>
+                                            {% else %}
+                                            <li id="changeName" style="border: 1px solid white" class="p-3">
+                                                <i class="bi bi-person"></i> Change name
+                                            </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <button style="border: none; background-color: white;">
+                                <i class="bi bi-gear" style="color: #71c55d; font-size: 30px;" id="options"></i>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    {% if poll.event_details%}
+                        <p><i class="bi bi-justify-left" style="color: #71c55d;"></i> {{poll.event_details}}</p>
+                    {% endif %}
+            
+                    <p><i class="bi bi-geo-alt-fill" style="color: #71c55d"></i> {{poll.event_location}}</p>
+                    {% if poll.ended %}
+                        <p class="text-center p-1" style="background-color:#D3D3D3">
+                            <i class="bi bi-circle-fill" style="color:#696969"></i>
+                            This poll closed on <strong>{{poll.rsvp_by}}</strong>
+                        </p>
+                        {% else %}
+                            <p>
+                                <i class="bi bi-circle-fill" style="color:#71c55d"></i>
+                                Last day to RSVP is <strong>{{poll.rsvp_by}}</strong>
+                            </p>
+                    {% endif %}
+                </div>
+                <div class="mt-5 p-3 pb-5 rounded col-sm-12 col-m-12 col-lg-4 ml-lg-5  mr-0 shadow" style="box-sizing: border-box;">
+                    <h3 class="text-center"><i class="bi bi-chat-fill" style="color: #71c55d;"></i> Message</h3>
+                    <div class="chat-container mb-5" style="height: 205px;">
+                        <div id="messages" class=""
+                            style="min-height: 200px; max-height: 200px; overflow-y: scroll; position: relative;">
+                            {% for message in poll.messages.all %}
+                                {% if message.content_type.model == 'user' and user.is_authenticated %}
+                                    <div class="col-md-12">
+                                        <div class="col-md-9 mb-3" style="float: right;">
+                                            <p>{{message.content_sender.name}}</p>
+                                            <div class="rounded p-3" style="background: #71c55d;">
+                                                <span>{{message.content}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                {% elif message.content_type.model == 'guest' and request.GET.gid|to_int == message.sender_id %}
+                                    <div class="col-md-12">
+                                        <div class="col-md-9 mb-3" style="float: right;">
+                                            <p>{{message.content_sender.name}}</p>
+                                            <div class="rounded p-3" style="background: #71c55d;">
+                                                <span>{{message.content}}</span>
+                                            </div>
+                                        </div>
+                                    </div>  
+                                {% else %}
+                                <div class="col-md-12">
+                                    <div class="col-md-9 mb-3" style="float: left">
+                                        <p>{{message.content_sender.name}}</p>
+                                        <div class="rounded shadow p-3" style="background: white;">
+                                            <span>{{message.content}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                            {% endfor %}
+                        </div>
+                        <div class="row justify-content-between mb-5 mt-3 align-items-center">
+                            <div class="col-8 ml-3">
+                                <textarea id="messageContent" class="form-control" rows="2"
+                                placeholder="Leave a message"></textarea>
+                            </div>
+                            <div class="col-3">
+                                <button id="message" style="border: none; background-color: white;">
+                                    <i class="bi bi-send-fill fa-2x" style="color: #71c55d;"></i>
+                                </button>
+                            </div>
+                            
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            {% if user.is_authenticated and user == poll.creator %}
+                <div class="accordion accordion-flush shadow rounded p-0 col-md-12 mx-auto d-flex mt-5"
+                    id="accordionExample">
+                    <div class="col-md-6 p-3 text-center accordion-item" style=" border-right: 2px solid #71c55d;">
+                        <h3 class="accordion-header" id="flush-headingOne">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne"
+                                style="border: none; background-color: white;">
+                                Add Guests </button>
+                        </h3>
+
+                    </div>
+                    <div class="col-md-6 p-3 text-center accordion-item">
+                        <h3 class="accordion-header" id="flush-headingTwo">
+
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo"
+                                style="border: none; background-color: white;">
+                                Share with link </button>
+                        </h3>
+                    </div>
+                </div>
+                <div class="card col-md-12 mx-auto shadow rounded mt-5 mb-5 p-5 shadow text-center accordion-collapse collapse"
+                    id="flush-collapseOne" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <h3>Add Guests</h3>
+                        <p class="text-left">Enter your guest’s name and email address and we’ll send them an email
+                            with a unique link to your poll. Your guests will not have to sign in.<br><br>
+                            Preview your guest list in the "Send to" section below. If you need to edit any of your
+                            guests just click on the name or email and make the changes you need. Before you hit 
+                            "SEND" you can opt to store the guest list as a guest group in case you want to use it again later.<br><br>
+                            You can paste a list of contacts if you seperate them with a comma, e.g. Ann Smith
+                            ann@email.com, Ron ron.w@email.com, etc.
+
+                        </p>
+                        <form id="addGuestForm" method="post" action="{% url 'polls:invite' poll.pk %}">
+                            <div class="row justify-content-between">
+                                {% csrf_token %}
+                                <input id="guest-list" type="hidden" name="guest_list">
+                                <div class="col-md-7 mb-5 mb-md-0">
+                                    <label class="float-left"><i class="bi bi-person" style="color: #71c55d;"></i>
+                                        name email
+                                    </label>
+                                    <input type="text" class="form-control" name="guest" id="invite-guest">
+                                </div>
+
+                                <div style="background-color: #D3D3D3;float: right;" class="p-3 text-left rounded col-md-4">
+                                    <strong>send to:</strong><br>
+                                    <div class="mb-2" id="guests">
+                                    </div>
+                                    <button id="send-invite" class="btn-get-started scrollto float-right mb-0">Send</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card col-md-12 mx-auto shadow rounded mt-5 mb-5 p-5 shadow text-center accordion-collapse collapse"
+                    id="flush-collapseTwo"  data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <h3>Share the poll with a link</h3>
+                        <p class="text-left">Copy the shareable link and share it with your guests on social media,
+                            with sms, or anyhow you like.
+                        </p>
+                        <div class="col-md-6 mx-auto">
+                            <div style="background-color: #D3D3D3;" class="p-4 text-left rounded">
+                                <a href="{% url 'polls:poll_detail' poll.pk %}?invite={{poll.token}}">
+                                    <p id="toshare">Please mark your availability for: {{poll}}<br>
+                                        http://127.0.0.1:8000{% url 'polls:poll_detail' poll.pk %}?invite={{poll.token}}
+                                    </p>
+                                </a>
+                            </div>
+                            <button class="btn-get-started scrollto mt-3" id="copy">Copy to Share</button>
+                        </div>
+
+                        <p class="text-left">
+                            Anyone with the link can add themselves to the poll and vote (the 20 guest limit still
+                            applies unless the poll is Premium) <br><br>
+                            When your guests add themselves to your poll they will add a name and optionally include
+                            their email address. Please note that if they opt not to include their email address they won’t
+                            receive any notifications regarding the poll, e.g. change in location, final date picked etc.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="shadow p-3 mb-5 bg-white rounded row col-md-12 mx-auto mt-5 d-md-flex flex-row justify-content-between"
+            style="display: block;">
+                <div class="col-md-8 mr-3">
+                    <p>Check the box to mark your preference for each date.<br>
+                        The option is yes <i class="bi bi-check2" style="color: #71c55d;"></i> or leave
+                        empty.<br> Time zone: "Africa/Cairo".
+                    </p>
+                    <div class="d-flex flex-row mb-5">
+                        <button id="votes-op" class="mr-5 options">Votes</button>
+                        <button id="calendar-op" class="mr-5 options">Calendar</button>
+                        {% if user.is_authenticated %}
+                            <button id="table-op" class="mr-5 options">Table</button>
+                        {% endif %}    
+                    </div>
+                    <div id="votes-body" class="">
+                        <h3 class="ml-2 mb-3">Votes</h3>
+                        {% for timeslot in poll.time_slots.all %}
+                            <div class="d-flex flex-row">
+                                {% if not user.is_authenticated %}
+                                    <div class="form-check mt-3 mr-3">
+                                        <input onchange="updateChoice(this)" id="choice-{{timeslot.id}}" type="checkbox"
+                                            class="float-left mt-3" style="transform: scale(1.5);accent-color: green;"
+                                            value="{{timeslot.id}}">
+                                    </div>
+                                {% endif %}
+                                <div class="d-inline col-md-9">
+                                    <span>
+                                        {{timeslot.day|date:"D, M j"}} @ {{timeslot.start|date:"P"}} -
+                                        {{timeslot.end|date:"P"}}
+                                    </span>
+                                    <div class="progress" style="height: 40px; border-radius: 50px; font-size: 16px;">
+                                        <div class="progress-bar" role="progressbar" id="progress-{{timeslot.id}}" aria-valuenow="{{timeslot.votes_count}}"
+                                            aria-valuemin="0" aria-valuemax="{{poll.max_vote}}"
+                                            style="width: {% widthratio timeslot.votes_count poll.max_vote 100 %}%; background-color: #71c55d;">
+                                            &#10003; {{timeslot.votes_count}}
+                                        </div>
+                                    </div><br>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div id='calendar' class="d-none" style="max-height: 550px"></div>
+                    {% if user.is_authenticated %}
+                        <div id="table-body" class="d-none col-md-12 table-responsive">
+                            <h3 class="ml-2 mb-3">Table</h3>
+                            <table class="table">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th></th>
+                                        {% for timeslot in poll.time_slots.all %}
+                                            <th class="text-center">{{timeslot.day|date:"D, M j"}}<br>
+                                                <span>{{timeslot.start|date:"P"}} - {{timeslot.end|date:"P"}}</span>
+                                            </th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody class="">
+                                    {% for guest in poll.guests.all %}
+                                        <tr id="guest-{{guest.id}}">
+                                            <td>{{guest.name}}</td>
+                                            {% for timeslot in poll.time_slots.all %}
+                                                <td id="slot-{{timeslot.id}}-guest-{{guest.id}}" class="text-center">
+                                                    {% if guest|has_voted:timeslot %}
+                                                        <i id="tick-slot-{{timeslot.id}}-guest-{{guest.id}}" class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>
+                                                    {% endif %}
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if user.is_authenticated %}
+                <div class="col-md-3">
+                    <p>Your guests do not see the email addresses. Click on a guest for details.</p>
+                    <strong id="voters-count">Voted ({{poll.guests_voted.count}}):</strong><br>
+                    <div id="voters">
+                        {% for guest in poll.guests_voted %}
+                            <span>{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
+                        {% endfor %}
+                    </div>
+                    <strong id="waiting-count">On waiting: ({{poll.guests_waiting.count}}):</strong><br>    
+                    <div id="waiting">
+                        {% for guest in poll.guests_waiting %}
+                            <span>{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-md-3">
+                    <strong>You are voting as:</strong><br>
+                    <span id="guest_name">{{guest.name}} {% if guest.email %} ({{guest.email}}) {% endif %}</span><br>
+                    <span id="vote_link" style="color: #71c55d; cursor: pointer">your personal link to this poll</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal fade show" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background-color: #71c55d; color: white;">
+                            <h5 class="modal-title text-white" id="editModalLabel"></h5>
+                            <button id="closeModal" type="button" class="close" data-dismiss="modal"
+                                aria-label="Close" style="color: white; border: none; background: none; font-size: 25px">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form id="edit-form" method="post" action="edit/">
+                            <div class="modal-body" id="modalContent">
+                                {% csrf_token %}
+                                <input type="hidden" name="_method" value="put">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" id="changes" class="btn btn-get-started"></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}
+
+{% block extrascripts %}
+    <script src="{% static 'fullcalendar/dist/index.global.js' %}"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    
+    <script>
+        
+        var event_name = "{{poll.event_name}}";
+        var event_details = `{{poll.event_details}}`;
+        var event_location = "{{poll.event_location}}";
+        var event_rsvp = "{{poll.rsvp_by}}";
+        var slots = '{{poll.time_slots.all|queryset_as_json}}';
+        var delete_url = "{% url 'polls:delete' poll.pk %}";
+        var poll_pk = "{{poll.pk}}";
+        var messagebtn = document.getElementById('message');
+        var messages = document.getElementById('messages');
+        var guest = null;
+        var votes = null;
+        var guest_id = null;
+        var csrf_token = "{{csrf_token}}"
+
+        const voteSocket = new WebSocket(
+            `ws://${window.location.host}/ws/voting/${poll_pk}/`
+        )
+
+        document.addEventListener("DOMContentLoaded", function () {
+            messages.scrollTop = messages.scrollHeight;
+            const chatSocket = new WebSocket(
+                `ws://${window.location.host}/ws/chat/${poll_pk}/`
+            );
+
+            
+
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                var sender = JSON.parse(data.sender)[0]
+                var color = null;
+                var float = 'right';
+                if (guest && sender.model == 'polls.guest' && sender.pk == guest_id) {
+                    color = '#71c55d';
+                } else if (sender.model == 'accounts.user' && guest == null) {
+                    color = '#71c55d';
+                } else {
+                    color = 'white';
+                    float = 'left';
+                }
+
+                messages.insertAdjacentHTML('beforeend', `<div class="col-md-12">
+                    <div class="col-md-9 mb-3" style="float: ${float};">
+                        <p>${sender.fields.name}</p>
+                        <div class="rounded shadow p-3" style="background: ${color}">
+                            <span>${data.message}</span>
+                        </div>
+                    </div>
+                </div>`)
+
+                messages.scrollTop = messages.scrollHeight;
+                
+            };
+
+            voteSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data)
+                console.log(data)
+                var timeslot = data.timeslot
+                var timeslotDiv = document.getElementById(`choice-${timeslot}`)
+                var voters = document.getElementById('voters')
+                var waiting = document.getElementById('waiting')
+                var waiting_count = document.getElementById('waiting-count')
+                var voters_count = document.getElementById('voters-count')
+                var tick = document.getElementById(`tick-slot-${timeslot}-guest-${data.voter_id}`)
+
+                if (parseInt(guest_id) == data.voter_id)
+                {
+                    if (data.vote_method == 'calendar')
+                    {
+                        timeslotDiv.checked = !timeslotDiv.checked
+                    }
+
+                    if (data.vote_method == 'checkbox')
+                    {
+                        timeslotDiv = timeslotDiv.checked
+                    }
+                }
+
+                var progress = document.getElementById(`progress-${timeslot}`)
+
+                progress.setAttribute('aria-valuenow', data.votes_count)
+                progress.setAttribute('aria-valuemax', data.max_vote)
+                if (data.votes_count == 0) {
+                    progress.innerText = ""
+                    progress.style.background = "#e9ecef";
+                } else {
+                    progress.style.background = "#71c55d"
+                    progress.innerText =  `✓ ${data.votes_count}`
+                    var width = (data.votes_count / data.max_vote) * 100;
+                    progress.style.width = `${width}%`
+                    
+                }
+                
+                var waiting_guests = JSON.parse(data.waiting_guests)
+                var voted_guests = JSON.parse(data.voters)
+
+                var new_waiting = ''
+                var new_voters = ''
+
+                waiting_guests.forEach(w => {
+                    new_waiting += `<span>${w.fields.name}`
+                    if (w.fields.email) {
+                        new_waiting += ` (${w.fields.email})</span><br>`
+                    } else {
+                        new_waiting += `</span><br>`
+                    }
+                })
+
+                voted_guests.forEach(v => {
+                    new_voters += `<span>${v.fields.name}`
+                    if (v.fields.email) {
+                        new_voters += ` (${v.fields.email})</span><br>`
+                    } else {
+                        new_voters += `</span><br>`
+                    }
+                })
+
+                waiting.innerHTML = new_waiting
+                voters.innerHTML = new_voters
+
+                waiting_count.innerText = `On waiting (${waiting_guests.length}):`
+                voters_count.innerText = `Voted (${voted_guests.length})`
+
+                if (tick ) {
+                    if (tick.style.display == "none") {
+                        tick.style.display = "block"
+                    } else {
+                        tick.style.display = 'none';
+                    }
+                    
+                } else {
+                    var slot = document.getElementById(`slot-${timeslot}-guest-${data.voter_id}`)
+                    console.log(slot)
+                    slot.innerHTML = `<i id="tick-slot-${timeslot}-guest-${data.voter_id}" class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>`
+                }
+            }
+
+            chatSocket.onClose = function(e) {
+                console.log("Error, connection closed");
+            };
+
+            voteSocket.onClose = function(e) {
+                console.log("Error, connection closed");
+            };
+
+            guest_id = '{{request.GET.gid}}'
+            var guest_name = document.getElementById('guest_name')
+
+            if (guest_id) {
+                axios.get(`http://127.0.0.1:8000/polls/{{poll.pk}}/guests/${guest_id}/`).then(data => {
+                    guest = JSON.parse(data.data.guest)[0]
+                    votes = JSON.parse(data.data.votes)
+ 
+                    guest_name.innerText = guest.fields.name
+                    votes.forEach(vote => {
+                        timeslot = document.getElementById('choice-' + vote.fields.time_slot)
+                        if (timeslot) {
+                            timeslot.checked = true
+                        }
+                    })
+                })
+            }
+
+            messagebtn.addEventListener('click', function () {
+                const messageInput = document.getElementById('messageContent')
+                const text_message = messageInput.value;
+                var sender = null;
+                var sender_type = null;
+                if (guest == null)
+                {
+                    sender = "{{poll.creator.id}}"
+                    sender_type = 'user'
+                }
+                else {
+                    sender = guest.pk
+                    sender_type = 'guest'
+                }
+                chatSocket.send(JSON.stringify({
+                    'message': text_message,
+                    'sender': sender,
+                    'sender_type': sender_type
+                }));
+                messageInput.value = ''
+            })
+
+            var copybtn = document.getElementById('copy')
+            if (copybtn) {
+                copybtn.addEventListener('click', () => {
+                    var text = document.getElementById("toshare").innerText
+                    navigator.clipboard.writeText(text)
+                })
+            }
+
+            var guestModal = document.getElementById('guestModal')
+            var closeGuestModal = document.getElementById('closeGuestModal')
+            var guestForm = document.getElementById('guest-form')
+            var guestName = document.getElementById('guest-name')
+            var guestEmail = document.getElementById('guest-email')
+            var addGuest = document.getElementById('add-guest')
+            var linkModal = document.getElementById('linkModal')
+            if (guestModal) {
+                guestModal.style.display = 'block'
+            }
+            if (closeGuestModal) {
+                closeGuestModal.addEventListener('click', () => {
+                    guestModal.style.display = 'none'
+                })
+            }
+
+            var copylink = document.getElementById('copyLink')
+            if (copylink) {
+                copylink.addEventListener('click', () => {
+                    var text = document.getElementById("link").innerText
+                    navigator.clipboard.writeText(text)
+                })
+            }
+
+            var vote_link = document.getElementById('vote_link')
+            var linkModel = document.getElementById('linkModal')
+            var closeLinkModal = document.getElementById('closeLinkModal')
+            if (vote_link) {
+                vote_link.addEventListener('click', () => {
+                    console.log('test')
+                    custom_link = 'http://127.0.0.1:8000/polls/{{poll.pk}}/?gid=' + guest_id + '/'
+                    linkModal.style.display = 'block'
+                    document.getElementById('link').innerText = custom_link
+                })
+            }
+
+            var toVote = document.getElementById('ok')
+            toVote.addEventListener('click', () => {
+                linkModal.style.display = 'none'
+            })
+
+            closeLinkModal.addEventListener('click', () => {
+                linkModal.style.display = 'none'
+            })
+        });
+
+        function updateChoice(element, value = null) {
+            if (guest == null)
+            {
+                guestModal.style.display = 'block';
+            }
+            timeslot = value ? value : element.value
+
+            voteSocket.send(JSON.stringify({
+                'timeslot_id': parseInt(timeslot),
+                'guest_id': parseInt(guest_id),
+                'vote_method': 'checkbox'
+            }));
+        }
+
+    </script>
+    <script src="{% static 'polls/js/poll_settings.js' %}"></script>
+    <script src="{% static 'polls/js/invite_guests.js' %}"></script>
+    <script src="{% static 'polls/js/votes_options.js' %}"></script>
+{% endblock extrascripts %}
