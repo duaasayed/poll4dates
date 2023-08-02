@@ -269,7 +269,7 @@
                             <div style="background-color: #D3D3D3;" class="p-4 text-left rounded">
                                 <a href="{% url 'polls:poll_detail' poll.pk %}?invite={{poll.token}}">
                                     <p id="toshare">Please mark your availability for: {{poll}}<br>
-                                        http://127.0.0.1:8000{% url 'polls:poll_detail' poll.pk %}?invite={{poll.token}}
+                                        http://{{request.get_host}}{% url 'polls:poll_detail' poll.pk %}?invite={{poll.token}}
                                     </p>
                                 </a>
                             </div>
@@ -566,7 +566,7 @@
             var guest_name = document.getElementById('guest_name')
 
             if (guest_id) {
-                axios.get(`http://127.0.0.1:8000/polls/{{poll.pk}}/guests/${guest_id}/`).then(data => {
+                axios.get(`http://${window.location.host}/polls/{{poll.pk}}/guests/${guest_id}/`).then(data => {
                     guest = JSON.parse(data.data.guest)[0]
                     votes = JSON.parse(data.data.votes)
  
@@ -640,7 +640,7 @@
             if (vote_link) {
                 vote_link.addEventListener('click', () => {
                     console.log('test')
-                    custom_link = 'http://127.0.0.1:8000/polls/{{poll.pk}}/?gid=' + guest_id + '/'
+                    custom_link = 'http://{{request.get_host}}/polls/{{poll.pk}}/?gid=' + guest_id + '/'
                     linkModal.style.display = 'block'
                     document.getElementById('link').innerText = custom_link
                 })
