@@ -8,7 +8,7 @@
     <h5 class="mb-3">Hello, {{guest}}</h5>
     <p class="mb-3">{{poll.event_organizer}} would like you to mark your availability for {{poll.event_name}}.</p>
     <p class="mb-5">Please RSVP now so that {{organizer}} knows when works for you.</p>
-    <a href="http://127.0.0.1:8000{% url 'polls:poll_detail' poll.pk %}?gid={{guest.pk}}" class="mb-5"><button class="btn-get-started scrollto mt-3">RSVP</button></a>
+    <a href="http://{{request.get_host}}{% url 'polls:poll_detail' poll.pk %}?gid={{guest.pk}}" class="mb-5"><button class="btn-get-started scrollto mt-3">RSVP</button></a>
     <p>By marking your availability, you are helping {{poll.event_organizer}} 
         finding the best time for {{poll.event_name}}. No sign-in is required.
     </p>
