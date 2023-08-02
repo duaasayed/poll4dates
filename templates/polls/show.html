@@ -86,7 +86,7 @@
                                 style="z-index: 100; background-color: white; margin-left: -180px; margin-right: 10px;">
                                 <ul style="list-style-type: none; width: 250px; border: 1px solid #92d283;"
                                     class="p-0 mb-0">
-                                    {% if not request.GET.id %}
+                                    {% if not request.GET.gid %}
                                         <li id="editTitle" style="border: 1px solid white" class="p-3">
                                             <i class="bi bi-tag-fill"></i> Edit Name
                                         </li>
@@ -128,7 +128,6 @@
                                 <i class="bi bi-gear" style="color: #71c55d; font-size: 30px;" id="options"></i>
                             </button>
                         </div>
-
                     </div>
 
                     {% if poll.event_details%}
