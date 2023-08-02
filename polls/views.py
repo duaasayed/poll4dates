@@ -146,7 +146,7 @@ def invite(request, pk):
         
         guest = poll.guests.create(name=name, email=email)
 
-        mail_body = render_to_string('emails/invite.html', {'poll': poll, 'guest': guest})
+        mail_body = render_to_string('emails/invite.html', {'poll': poll, 'guest': guest, 'request': request})
         mail = EmailMultiAlternatives('You got an invitation', mail_body, settings.EMAIL_HOST_USER, [email])
         mail.attach_alternative(mail_body, 'text/html')
         mails.append(mail)
