@@ -566,7 +566,7 @@
             var guest_name = document.getElementById('guest_name')
 
             if (guest_id) {
-                axios.get(`http://${window.location.host}/{{poll.pk}}/guests/${guest_id}/`).then(data => {
+                axios.get(`http://${window.location.host}/polls/{{poll.pk}}/guests/${guest_id}/`).then(data => {
                     try {
                         guest = JSON.parse(data.data.guest)[0]
                         votes = JSON.parse(data.data.votes)
