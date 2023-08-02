@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    "polls"
+    "polls",
+    "django_celery_beat"
 ]
 
 MIDDLEWARE = [
@@ -145,7 +146,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Cairo"
 
 USE_I18N = True
 

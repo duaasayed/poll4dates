@@ -1,70 +1,39 @@
 {% extends 'base.html' %}
-{% load i18n %}
-
 {% block title %}<title>Sign Up</title>>{% endblock %}
-
 {% block content %}
 <main>
     <section class="inner-page pt-4 mt-5">
         <div class="container col-md-12 mt-5">
             <div class="shadow card mb-5 bg-white rounded col-md-4 mx-auto p-0">
                 <div class="card-header" style="background-color: #71c55d; color: white;">
-                    <h3 class="text-center">{% trans "Sign Up" %}</h3>
+                    <h3 class="text-center">Sign Up</h3>
                 </div>
+
                 <div class="card-body text-center">
-                    <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>
-                        {% endblocktrans %}</p>
+                    <p>
+                        Already have an account? Then please
+                        <a href="{{ login_url }}">sign in</a>
+                    </p>
+
                     {% for error in form.non_field_errors %}
-                    <div class="alert alert-error">
-                        <strong style="color: red">{{ error|escape }}</strong>
-                    </div>
+                        <div class="alert alert-error">
+                            <strong style="color: red">{{ error|escape }}</strong>
+                        </div>
                     {% endfor %}
+
                     <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
                         {% csrf_token %}
-                        <div class="mb-3">
-                            <label class="form-label" for="id_name"><i class="bi bi-person"></i> Name: </label>
-                            <input type="text" value="{% if form.name.value %}{{form.name.value}}{% endif %}"
-                                name="name" id="id_name" class="form-control" required>
-                            {% if form.errors and 'name' in form.errors %}
-                            {% for error in form.errors.name %}
-                            <p style="color: red">{{ error|escape }}</p>
-                            {% endfor %}
-                            {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="id_email"><i class="bi bi-envelope-at"></i> E-mail: </label>
-                            <input type="email" value="{% if form.email.value %}{{form.email.value}}{% endif %}"
-                                name="email" id="id_email" class="form-control" required>
-                            {% if form.errors and 'email' in form.errors %}
-                            {% for error in form.errors.email %}
-                            <p style="color: red">{{ error|escape }}</p>
-                            {% endfor %}
-                            {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="id_password1"><i class="bi bi-lock"></i> Password</label>
-                            <input class="form-control" type="password" name="password1" autocomplete="new-password"
-                                required id="id_password1">
-                            {% if form.errors and 'password1' in form.errors %}
-                            {% for error in form.errors.password1 %}
-                            <p style="color: red">{{ error|escape }}</p>
-                            {% endfor %}
-                            {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="id_password2"><i class="bi bi-lock"></i> Password
-                                (again):</label>
-                            <input class="form-control" type="password" name="password2" autocomplete="new-password"
-                                required id="id_password2">
-                            {% if form.errors and 'password2' in form.errors %}
-                            {% for error in form.errors.password2 %}
-                            <p style="color: red">{{ error|escape }}</p>
-                            {% endfor %}
-                            {% endif %}
-                        </div>
+
+                        {% include "account/snippets/form_input.html" with label="Name:" type="text" name="name" icon="person" %}
+                        {% include "account/snippets/form_input.html" with label="E-mail:" type="email" name="email" icon="envelope-at" %}
+                        {% include "account/snippets/form_input.html" with label="Password:" icon="lock" type="password" name="password1" autocomplete="new-password" %}
+                        {% include "account/snippets/form_input.html" with label="Password (again):" icon="lock" type="password" name="password2" autocomplete="new-password" %}
+
+                        
                         {% if redirect_field_value %}
-                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
                         {% endif %}
+
                         <button type="submit" class="btn-get-started col-md-4">Sign Up &raquo;</button>
                     </form>
                 </div>

@@ -11,8 +11,9 @@ class CustomSignupForm(SignupForm):
 
     def save(self, request):
         user = super().save(request)
-        user.name = self.cleaned_data.get('name')
-        user.save()
+        if user:
+            user.name = self.cleaned_data.get('name')
+            user.save()
         return user
     
 

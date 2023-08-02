@@ -15,6 +15,7 @@ from django.conf import settings
 from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.core import serializers
+from django.shortcuts import render
 
 
 class PollCreate(FormView):
@@ -75,8 +76,13 @@ class PollDetail(DetailView):
         if not invite and not gid:
             if not request.user.is_authenticated:
                 return redirect_to_login(request.get_full_path(), self.login_url)
-        return super().get(request, *args, **kwargs)
-
+        try:
+            poll_pk = self.kwargs[self.pk_url_kwarg]
+            queryset = self.get_queryset()
+            poll = queryset.get(pk=poll_pk) if not invite else queryset.get(pk=poll_pk, token=invite)
+            return render(request, 'polls/show.html', {'poll': poll})
+        except:
+            return render(request, '404.html')
         
     
 class PollUpdate(LoginRequiredMixin, UpdateView):
@@ -168,8 +174,12 @@ def add_guest(request, pk=None):
 
 
 def get_guest(request, poll_pk=None, guest_pk=None):
-    instance = Guest.objects.filter(poll=poll_pk).prefetch_related('votes').get(pk=guest_pk)
-    guest = serializers.serialize('json', [instance])
-    votes = serializers.serialize('json', instance.votes.all())
-    return JsonResponse({'guest': guest, 'votes': votes})
+    try:
+        instance = Guest.objects.prefetch_related('votes').get(pk=guest_pk, poll_id=poll_pk)
+        guest = serializers.serialize('json', [instance])
+        votes = serializers.serialize('json', instance.votes.all())
+        return JsonResponse({'guest': guest, 'votes': votes})
+    except:
+        return JsonResponse({})
+    
     

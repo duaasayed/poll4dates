@@ -5,7 +5,7 @@
 {% block content %}
 <main>
     <section class="inner-page pt-4 mt-5">
-        <div class="container col-md-9 mt-5">
+        <div class="container col-md-9 mt-5" id="container">
             {% if not user.is_authenticated and 'invite' in request.GET %}
                 <div class="modal fade show" id="guestModal" tabindex="-1" role="dialog" aria-labelledby="guestModalLabel"
                     aria-hidden="true">
@@ -566,17 +566,32 @@
             var guest_name = document.getElementById('guest_name')
 
             if (guest_id) {
-                axios.get(`http://${window.location.host}/polls/{{poll.pk}}/guests/${guest_id}/`).then(data => {
-                    guest = JSON.parse(data.data.guest)[0]
-                    votes = JSON.parse(data.data.votes)
- 
-                    guest_name.innerText = guest.fields.name
-                    votes.forEach(vote => {
-                        timeslot = document.getElementById('choice-' + vote.fields.time_slot)
-                        if (timeslot) {
-                            timeslot.checked = true
-                        }
-                    })
+                axios.get(`http://${window.location.host}/{{poll.pk}}/guests/${guest_id}/`).then(data => {
+                    try {
+                        guest = JSON.parse(data.data.guest)[0]
+                        votes = JSON.parse(data.data.votes)
+                        console.log(guest)
+                        guest_name.innerText = guest.fields.name
+                        votes.forEach(vote => {
+                            timeslot = document.getElementById('choice-' + vote.fields.time_slot)
+                            if (timeslot) {
+                                timeslot.checked = true
+                            }
+                        })
+                    } catch {
+                        var container = document.getElementById('container')
+                        container.innerHTML = `
+                        <div class="shadow card mb-5 bg-white rounded col-md-5 mx-auto p-0">
+                            <div class="card-body text-center">
+                                <h6>Uh-oh, we cannot find you in this poll.</h6>
+                                <img src="{% static 'polls/img/wa_person_sad.png'%}" class="col-8">
+                                <p>
+                                    Double check the URL you entered to make sure it is correct.
+                                    If you think this is an error, please <a href="/#contact">contact us</a>
+                                </p>      
+                            </div>  
+                        </div>`
+                    }
                 })
             }
 

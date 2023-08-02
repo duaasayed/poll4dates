@@ -1,0 +1,9 @@
+{% load static %}
+{% load accounts_tags %}
+{% if form.errors and field in form.errors %}
+    {% with field_attr=form.errors|get_val_by_key:field %}
+        {% for error in field_attr %}
+            <p style="color: red">{{ error|escape }}</p>
+        {% endfor %}
+    {% endwith %}
+{% endif %}

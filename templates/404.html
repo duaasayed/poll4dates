@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %} <title>404 - Not Fount</title>{% endblock %}
+{% load static %}
+{% block content %}
+<main>
+    <section class="inner-page pt-4 mt-5">
+        <div class="container col-md-9 mt-5">
+            <div class="shadow card mb-5 bg-white rounded col-md-5 mx-auto p-0">
+                <div class="card-body text-center">
+                    <h6>Uh-oh, the poll you are trying to access does not exist<h6>
+                    <img src="{% static 'polls/img/wa_person_sad.png'%}" class="col-8">
+                    <p>
+                        Either the organizer removed the poll or the URL you entered is not correct
+                        If you think this is an error, please <a href="/#contact">contact us</a>
+                    </p>      
+                </div>  
+            </div>
+        </div>
+    </section>
+</main>
+
+{% endblock content %}
