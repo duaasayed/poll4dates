@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Setting EC2 instance for hosting poll4dates"
+
+Resources:
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "Poll4dates"
+      GroupDescription: "Allow ssh 22 and Http 8000 ports"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          CidrIp: 0.0.0.0/0
+
+  AppInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      SecurityGroups:
+        - Ref: AppSecurityGroup
+      KeyName: vockey
+      ImageId: ami-053b0d53c279acc90
+      Tags:
+        - Key: Name
+          Value: poll4dates
