@@ -182,4 +182,14 @@ def get_guest(request, poll_pk=None, guest_pk=None):
     except:
         return JsonResponse({})
     
-    
+
+def edit_guest_name(request, pk=None):
+    new_name = request.POST.get('name')
+    guest = Guest.objects.get(pk=pk)
+    guest.name = new_name
+    guest.save()
+
+    params = {'gid': pk}
+    query_string = urlencode(params)
+    return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': guest.poll_id}) + 
+    '?' + query_string)

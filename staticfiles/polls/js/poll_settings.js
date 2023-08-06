@@ -124,7 +124,7 @@ if (changeName) {
         appendToModal('input', 'text', 'name', 'Name', guest.fields.name)
         submitbtn.innerText = 'Save'
         var form = document.getElementById('edit-form')
-        form.action = "/guests/" + guest.fields.custom_id + '/edit'
+        form.action = "/guests/" + guest_id + '/edit/'
     })
 }
 
