@@ -27,9 +27,9 @@ environ.Env.read_env()
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [env('SERVER_IP')]
 
 
 # Application definition
@@ -157,7 +157,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
-
+STATIC_ROOT = "/var/www/poll4dates/static"
 STATICFILES_DIRS = [
     "staticfiles/",
 ]
