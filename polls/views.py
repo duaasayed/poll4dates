@@ -16,6 +16,7 @@ from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.core import serializers
 from django.shortcuts import render
+from django.contrib import messages
 
 
 class PollCreate(FormView):
@@ -144,12 +145,14 @@ def invite(request, pk):
         name = ' '.join(guest_info[:-1])
         email = guest_info[-1]
         
-        guest = poll.guests.create(name=name, email=email)
-
-        mail_body = render_to_string('emails/invite.html', {'poll': poll, 'guest': guest, 'request': request})
-        mail = EmailMultiAlternatives('You got an invitation', mail_body, settings.EMAIL_HOST_USER, [email])
-        mail.attach_alternative(mail_body, 'text/html')
-        mails.append(mail)
+        try: 
+            guest = poll.guests.create(name=name, email=email)
+            mail_body = render_to_string('emails/invite.html', {'poll': poll, 'guest': guest, 'request': request})
+            mail = EmailMultiAlternatives('You got an invitation', mail_body, settings.EMAIL_HOST_USER, [email])
+            mail.attach_alternative(mail_body, 'text/html')
+            mails.append(mail)
+        except:
+            pass
     
     connection = get_connection()
     connection.send_messages(mails)
@@ -164,13 +167,20 @@ def add_guest(request, pk=None):
 
     poll = Poll.objects.get(pk=pk)
 
-    if guest_name:
+    try:
         guest = poll.guests.create(name=guest_name, email=guest_email)
-
-    params = {'gid': guest.pk}
-    query_string = urlencode(params)
-    return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': pk}) + 
-        '?' + query_string)
+        params = {'gid': guest.pk}
+        query_string = urlencode(params)
+        return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': pk}) + 
+            '?' + query_string)
+    except:
+        params = {'invite': poll.token}
+        query_string = urlencode(params)
+        messages.error(request, 'Name or Email is already exist for another guest')
+        return redirect(reverse_lazy('polls:poll_detail' , kwargs={
+            'pk': pk, 
+        }) + '?' + query_string)
+        
 
 
 def get_guest(request, poll_pk=None, guest_pk=None):
