@@ -103,20 +103,22 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
             
             poll = Poll.objects.get(pk=self.get_object().pk)
             
-            for field, value in data.items():
-                setattr(poll, field, value)
+            if 'close' in data:
+                poll.rsvp_by = timezone.now()
                 poll.save()
 
-            if 'close' in data:
-                data['rsvp_by'] = timezone.now()
-            
-            if 'date' in data:
+            elif 'date' in data:
                 poll.time_slots.create(day=data['date'], start=data['start'], end=data['end'])
-
-            if 'timeslots[]' in data:
+                
+            elif 'timeslots[]' in data:
                 timeslots = post_data.getlist('timeslots[]')
                 for slot in timeslots:
                     poll.time_slots.get(pk=slot).delete()
+                
+            else:
+                for field, value in data.items():
+                    setattr(poll, field, value)
+                    poll.save()
               
         success_url = reverse_lazy('polls:poll_detail', kwargs={'pk': poll.pk})
         return redirect(success_url, {'poll': poll})
