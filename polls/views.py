@@ -16,7 +16,7 @@ from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.core import serializers
 from django.shortcuts import render
-
+from datetime import datetime
 
 class PollCreate(FormView):
     template_name = 'polls/create.html'
@@ -99,7 +99,6 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
 
         if '_method' in post_data and post_data['_method'] == 'put':
             data = {k:v for k,v in post_data.items() if k not in ['csrfmiddlewaretoken', '_method']}
-            
             poll = Poll.objects.get(pk=self.get_object().pk)
             
             for field, value in data.items():
@@ -107,7 +106,8 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
                 poll.save()
 
             if 'close' in data:
-                data['rsvp_by'] = timezone.now()
+                poll.rsvp_by = timezone.now()
+                poll.save()
             
             if 'date' in data:
                 poll.time_slots.create(day=data['date'], start=data['start'], end=data['end'])
