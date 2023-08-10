@@ -16,8 +16,12 @@ from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.core import serializers
 from django.shortcuts import render
+<<<<<<< HEAD
 from django.contrib import messages
 
+=======
+from datetime import datetime
+>>>>>>> FixCelery
 
 class PollCreate(FormView):
     template_name = 'polls/create.html'
@@ -100,7 +104,6 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
 
         if '_method' in post_data and post_data['_method'] == 'put':
             data = {k:v for k,v in post_data.items() if k not in ['csrfmiddlewaretoken', '_method']}
-            
             poll = Poll.objects.get(pk=self.get_object().pk)
             
             if 'close' in data:
