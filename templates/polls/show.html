@@ -294,7 +294,9 @@
                     </p>
                     <div class="d-flex flex-row mb-5">
                         <button id="votes-op" class="mr-5 options">Votes</button>
+                        {% if not user.is_authenticated and not poll.ended %}
                         <button id="calendar-op" class="mr-5 options">Calendar</button>
+                        {% endif %}
                         {% if user.is_authenticated %}
                             <button id="table-op" class="mr-5 options">Table</button>
                         {% endif %}    
@@ -303,7 +305,7 @@
                         <h3 class="ml-2 mb-3">Votes</h3>
                         {% for timeslot in poll.time_slots.all %}
                             <div class="d-flex flex-row">
-                                {% if not user.is_authenticated %}
+                                {% if not user.is_authenticated and not poll.ended %}
                                     <div class="form-check mt-3 mr-3">
                                         <input onchange="updateChoice(this)" id="choice-{{timeslot.id}}" type="checkbox"
                                             class="float-left mt-3" style="transform: scale(1.5);accent-color: green;"
@@ -326,7 +328,9 @@
                             </div>
                         {% endfor %}
                     </div>
+                    {% if not user.is_authenticated and not poll.ended %}
                     <div id='calendar' class="d-none" style="max-height: 550px"></div>
+                    {% endif %}
                     {% if user.is_authenticated %}
                         <div id="table-body" class="d-none col-md-12 table-responsive">
                             <h3 class="ml-2 mb-3">Table</h3>
