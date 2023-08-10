@@ -185,6 +185,7 @@
                                 
                             {% endfor %}
                         </div>
+                        {% if not poll.ended %}
                         <div class="row justify-content-between mb-5 mt-3 align-items-center">
                             <div class="col-8 ml-3">
                                 <textarea id="messageContent" class="form-control" rows="2"
@@ -195,8 +196,15 @@
                                     <i class="bi bi-send-fill fa-2x" style="color: #71c55d;"></i>
                                 </button>
                             </div>
-                            
                         </div>
+                        {% else %}
+                        <div class="row justify-content-between mb-5 mt-3 align-items-center">
+                            <p>Message feature is disabled for closed polls, 
+                                re-open(only the organizer can do) the poll to be able to use 
+                                this feature.
+                            </p>
+                        </div>
+                        {% endif %}
                     </div>
 
                 </div>
