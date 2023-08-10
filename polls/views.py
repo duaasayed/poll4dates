@@ -205,3 +205,18 @@ def edit_guest_name(request, pk=None):
     query_string = urlencode(params)
     return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': guest.poll_id}) + 
     '?' + query_string)
+
+
+def contact(request):
+    data = request.POST
+    mail_body = render_to_string('emails/contact.html', {'data': data})
+    mail = EmailMultiAlternatives(
+        'You got a new message from your website',
+        mail_body,
+        settings.EMAIL_HOST_USER,
+        (settings.ADMIN_EMAIL,),
+        reply_to=(data['email'],)
+    )
+    mail.attach_alternative(mail_body, 'text/html')
+    mail.send()
+    return JsonResponse({'status': 'ok'})
