@@ -16,12 +16,8 @@ from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.core import serializers
 from django.shortcuts import render
-<<<<<<< HEAD
 from django.contrib import messages
 
-=======
-from datetime import datetime
->>>>>>> FixCelery
 
 class PollCreate(FormView):
     template_name = 'polls/create.html'
