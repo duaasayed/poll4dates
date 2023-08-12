@@ -450,6 +450,14 @@
         var votes = null;
         var guest_id = null;
         var csrf_token = "{{csrf_token}}"
+        var guestModal = document.getElementById('guestModal')
+        var closeGuestModal = document.getElementById('closeGuestModal')
+        var guestForm = document.getElementById('guest-form')
+        var guestName = document.getElementById('guest-name')
+        var guestEmail = document.getElementById('guest-email')
+        var addGuest = document.getElementById('add-guest')
+        var linkModal = document.getElementById('linkModal')
+
 
         const voteSocket = new WebSocket(
             `ws://${window.location.host}/ws/voting/${poll_pk}/`
@@ -468,6 +476,7 @@
                 var sender = JSON.parse(data.sender)[0]
                 var color = null;
                 var float = 'right';
+                
                 if (guest && sender.model == 'polls.guest' && sender.pk == guest_id) {
                     color = '#71c55d';
                 } else if (sender.model == 'accounts.user' && guest == null) {
@@ -613,27 +622,38 @@
                     }
                 })
             }
-
+            
             messagebtn.addEventListener('click', function () {
                 const messageInput = document.getElementById('messageContent')
                 const text_message = messageInput.value;
                 var sender = null;
                 var sender_type = null;
-                if (guest == null)
+
+
+                if (!guest && "{{user.is_authenticated}}" == "True")
                 {
                     sender = "{{poll.creator.id}}"
                     sender_type = 'user'
                 }
+
+                else if (!guest && "{{user.is_authenticated}}" == "False") {
+                    guestModal.style.display = "block"
+                }
+
                 else {
                     sender = guest.pk
                     sender_type = 'guest'
                 }
-                chatSocket.send(JSON.stringify({
-                    'message': text_message,
-                    'sender': sender,
-                    'sender_type': sender_type
-                }));
-                messageInput.value = ''
+
+                if (sender) {
+                    chatSocket.send(JSON.stringify({
+                        'message': text_message,
+                        'sender': sender,
+                        'sender_type': sender_type
+                    }));
+                    messageInput.value = ''
+                }
+                
             })
 
             var copybtn = document.getElementById('copy')
@@ -644,13 +664,6 @@
                 })
             }
 
-            var guestModal = document.getElementById('guestModal')
-            var closeGuestModal = document.getElementById('closeGuestModal')
-            var guestForm = document.getElementById('guest-form')
-            var guestName = document.getElementById('guest-name')
-            var guestEmail = document.getElementById('guest-email')
-            var addGuest = document.getElementById('add-guest')
-            var linkModal = document.getElementById('linkModal')
             if (guestModal) {
                 guestModal.style.display = 'block'
             }
