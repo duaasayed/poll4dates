@@ -51,21 +51,26 @@ class Poll(models.Model):
         if isinstance(self.rsvp_by, str):
             rsvp_by = datetime.strptime(self.rsvp_by, '%Y-%m-%dT%H:%M')
         
-        # crontab_schedule = CrontabSchedule.objects.create(
-        #     minute=rsvp_by.minute+5,
-        #     hour=rsvp_by.hour,
-        #     day_of_week=rsvp_by.strftime('%w'),
-        #     day_of_month=rsvp_by.day,
-        #     month_of_year=rsvp_by.month,
-        #     timezone='Africa/Cairo'
-        # )
+        crontab_schedule = CrontabSchedule.objects.create(
+            minute=rsvp_by.minute+5,
+            hour=rsvp_by.hour,
+            day_of_week=rsvp_by.strftime('%w'),
+            day_of_month=rsvp_by.day,
+            month_of_year=rsvp_by.month,
+            timezone='Africa/Cairo'
+        )
 
-        # task, _ = PeriodicTask.objects.get_or_create(
-        #     crontab=crontab_schedule,
-        #     name=f'Send result email to poll {self.id} creator and guests',
-        #     task='polls.tasks.fetch_result_and_send_email',
-        #     args=[self.id]
-        # )
+        try:
+            task = PeriodicTask.objects.get(name__contains=self.pk)
+            task.crontab = crontab_schedule
+            task.save()
+        except:
+            PeriodicTask.objects.create(
+                crontab=crontab_schedule,
+                name=f'Send result email to poll {self.id} creator and guests',
+                task='polls.tasks.fetch_result_and_send_email',
+                args=[self.id]
+            )
 
 
 class TimeSlot(models.Model):
