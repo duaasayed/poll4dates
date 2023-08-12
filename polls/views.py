@@ -206,6 +206,7 @@ def edit_guest_name(request, pk=None):
     '?' + query_string)
 
 
+@require_http_methods(['POST'])
 def contact(request):
     data = request.POST
     mail_body = render_to_string('emails/contact.html', {'data': data})
