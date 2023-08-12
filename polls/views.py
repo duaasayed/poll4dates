@@ -163,9 +163,9 @@ def invite(request, pk):
 
 @require_http_methods(['POST'])
 def add_guest(request, pk=None):
-    guest_name = request.POST.get('name', None)
-    guest_email = request.POST.get('email', None)
-
+    guest_name = request.POST.get('name')
+    guest_email = request.POST.get('email')
+    guest_email = guest_email if guest_email else None
     poll = Poll.objects.get(pk=pk)
 
     try:
@@ -178,9 +178,8 @@ def add_guest(request, pk=None):
         params = {'invite': poll.token}
         query_string = urlencode(params)
         messages.error(request, 'Name or Email is already exist for another guest')
-        return redirect(reverse_lazy('polls:poll_detail' , kwargs={
-            'pk': pk, 
-        }) + '?' + query_string)
+        return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': pk}) + 
+            '?' + query_string)
         
 
 
@@ -194,16 +193,21 @@ def get_guest(request, poll_pk=None, guest_pk=None):
         return JsonResponse({})
     
 
+@require_http_methods(['POST'])
 def edit_guest_name(request, pk=None):
     new_name = request.POST.get('name')
     guest = Guest.objects.get(pk=pk)
-    guest.name = new_name
-    guest.save()
 
-    params = {'gid': pk}
-    query_string = urlencode(params)
-    return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': guest.poll_id}) + 
-    '?' + query_string)
+    try:
+        guest.name = new_name
+        guest.save()
+    except:
+        messages.error(request, 'This name belongs to another guest. Please, choose a valid name')
+    finally:
+        params = {'gid': pk}
+        query_string = urlencode(params)
+        return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': guest.poll_id}) + 
+        '?' + query_string)
 
 
 @require_http_methods(['POST'])

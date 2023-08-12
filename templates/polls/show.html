@@ -26,7 +26,9 @@
                                     {% if messages %}
                                         <div class="messages">
                                         {% for message in messages %}
-                                            <p style="color: red">{{ message }}</p>
+                                            {% if message.tags == 'error' %}
+                                                <p style="color: red">{{message}}</p>
+                                            {% endif %}
                                         {% endfor %}
                                         </div>
                                     {% endif %}
@@ -82,11 +84,22 @@
                     </div>
                 </div>
             </div>
+            
             <div class="row justify-content-between col-md-12 p-0 mx-auto mt-5 position-relative">
+                {% if messages and 'gid' in request.GET %}
+                    <div>
+                        {% for message in messages %}
+                            {% if message.tags == 'error' %}
+                                <p style="color: red">{{message}}</p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 <div class="col-sm-12 col-m-12 col-lg-7 shadow rounded mt-5 p-5">
                     <div class="row justify-content-between">
                         <div class="col-9">
                             <h4>{{poll}}</h4>
+                            
                             <p>Organizer: {{poll.event_organizer}}</p>
                         </div>
                         <div class="col-2">
