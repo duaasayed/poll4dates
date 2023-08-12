@@ -30,10 +30,10 @@
             <nav id="navbar" class="navbar">
                 <ul>
                     <li><a class="nav-link scrollto active" href="{% url 'polls:index' %}">Home</a></li>
-                    <li><a class="nav-link scrollto" href="#get-started">How To</a></li>
-                    <li><a class="nav-link scrollto" href="#features">Use Cases</a></li>
-                    <li><a class="nav-link scrollto" href="#testimonials">Testimonials</a></li>
-                    <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
+                    <li><a class="nav-link scrollto" href="{% url 'polls:index' %}#get-started">How To</a></li>
+                    <li><a class="nav-link scrollto" href="{% url 'polls:index' %}#features">Use Cases</a></li>
+                    <li><a class="nav-link scrollto" href="{% url 'polls:index' %}#testimonials">Testimonials</a></li>
+                    <li><a class="nav-link scrollto" href="{% url 'polls:index' %}#contact">Contact</a></li>
                     {% if user.is_authenticated %}
                     <li class="dropdown">
                         <a href="#"><span>{{user.name}}</span> <i class="bi bi-chevron-down"></i></a>
