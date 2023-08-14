@@ -4,12 +4,21 @@ import string
 import secrets 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django_celery_beat.models import CrontabSchedule, PeriodicTask
+from django_celery_beat.models import ClockedSchedule, PeriodicTask
 from django.db.models.constraints import UniqueConstraint
+from datetime import datetime, timedelta
+from django.db import transaction
+import pytz
+from django.urls import reverse
+
 
 def generate_token(length):
     alphabet = string.ascii_letters + string.digits
     return ''.join([secrets.choice(alphabet) for i in range(length)])
+
+
+def str_to_date(string):
+    return datetime.strptime(string, '%Y-%m-%dT%H:%M')
 
 
 class Poll(models.Model):
@@ -24,9 +33,16 @@ class Poll(models.Model):
 
     def __str__(self):
         return self.event_name
+
+
+    def get_absolute_url(self):
+        return reverse("polls:poll_detail", kwargs={"pk": self.pk})
+    
     
     @property
     def ended(self):
+        if isinstance(self.rsvp_by, str):
+            return str_to_date(self.rsvp_by) < datetime.now()
         return self.rsvp_by < timezone.now()
     
     @property
@@ -44,35 +60,56 @@ class Poll(models.Model):
 
 
     def save(self, *args, **kwargs):
-        from datetime import datetime
         self.token = generate_token(8)
+
         super().save(*args, **kwargs)
-        
-        rsvp_by = self.rsvp_by
+
+        rsvp_by = None
+
         if isinstance(self.rsvp_by, str):
-            rsvp_by = datetime.strptime(self.rsvp_by, '%Y-%m-%dT%H:%M')
+            rsvp_by = str_to_date(self.rsvp_by)
+
+        else:
+            desired_tz = pytz.timezone("Africa/Cairo")
+            rsvp_by = self.rsvp_by.astimezone(desired_tz)
+
+
+        task_found = PeriodicTask.objects.filter(name__contains=self.pk).exists()
         
-        crontab_schedule = CrontabSchedule.objects.create(
-            minute=rsvp_by.minute+5,
-            hour=rsvp_by.hour,
-            day_of_week=rsvp_by.strftime('%w'),
-            day_of_month=rsvp_by.day,
-            month_of_year=rsvp_by.month,
-            timezone='Africa/Cairo'
-        )
+        with transaction.atomic() :
+            if task_found:
+                task = PeriodicTask.objects.get(name__contains=self.pk)
+                
+                desired_tz = pytz.timezone("Africa/Cairo")
+                converted_time = task.clocked.clocked_time.astimezone(desired_tz)
+                t1 = converted_time.strftime("%Y-%m-%dT%H:%M")
+                
+                rsvp_plus = rsvp_by + timedelta(minutes=2)
+                t2 = rsvp_plus.strftime("%Y-%m-%dT%H:%M")
+                
+                if t1 != t2:
+                    task.clocked.delete()
+                    task.delete()
 
-        try:
-            task = PeriodicTask.objects.get(name__contains=self.pk)
-            task.crontab = crontab_schedule
-            task.save()
-        except:
-            PeriodicTask.objects.create(
-                crontab=crontab_schedule,
-                name=f'Send result email to poll {self.id} creator and guests',
-                task='polls.tasks.fetch_result_and_send_email',
-                args=[self.id]
-            )
+                    clocked_schedule = ClockedSchedule.objects.create(clocked_time=rsvp_by + timedelta(minutes=2))
 
+                    PeriodicTask.objects.create(
+                        clocked=clocked_schedule,
+                        name=f'Send result email to poll {self.id} creator and guests',
+                        task='polls.tasks.fetch_result_and_send_email',
+                        args=[self.id],
+                        one_off=True
+                    )
+            else:
+                clocked_schedule = ClockedSchedule.objects.create(clocked_time=rsvp_by + timedelta(minutes=2))
+
+                PeriodicTask.objects.create(
+                    clocked=clocked_schedule,
+                    name=f'Send result email to poll {self.id} creator and guests',
+                    task='polls.tasks.fetch_result_and_send_email',
+                    args=[self.id],
+                    one_off=True
+                )
 
 class TimeSlot(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='time_slots')
