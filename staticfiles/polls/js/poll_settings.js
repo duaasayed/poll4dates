@@ -216,6 +216,9 @@ function createInput(type, name, value, attr) {
     inputField.setAttribute('class', attr)
     inputField.setAttribute('name', name)
     inputField.setAttribute('value', value)
+    if (name != 'notify') {
+        inputField.setAttribute('required', '')
+    }
     if (name == 'rsvp_by') {
         inputField.setAttribute('min', minDate)
     }

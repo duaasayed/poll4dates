@@ -4,7 +4,7 @@ from django.views.generic.edit import FormView
 from .forms import PollCreationForm
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.utils import timezone
+from datetime import datetime 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import redirect_to_login
 from django.views.decorators.http import require_http_methods
@@ -17,6 +17,7 @@ from django.http import JsonResponse
 from django.core import serializers
 from django.shortcuts import render
 from django.contrib import messages
+from .tasks import notify_guests_with_changes, invite_guests, send_contact_message
 
 
 class PollCreate(FormView):
@@ -103,8 +104,10 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
             poll = Poll.objects.get(pk=self.get_object().pk)
             
             if 'close' in data:
-                poll.rsvp_by = timezone.now()
+                poll.rsvp_by = datetime.now().strftime("%Y-%m-%dT%H:%M")
                 poll.save()
+                if 'notify' in data:
+                    notify_guests_with_changes.delay(poll.pk, 'closed')                
 
             elif 'date' in data:
                 poll.time_slots.create(day=data['date'], start=data['start'], end=data['end'])
@@ -118,6 +121,9 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
                 for field, value in data.items():
                     setattr(poll, field, value)
                     poll.save()
+                    if field == 'notify':
+                        notify_guests_with_changes.delay(poll.pk, 're-opened')                
+
               
         success_url = reverse_lazy('polls:poll_detail', kwargs={'pk': poll.pk})
         return redirect(success_url, {'poll': poll})
@@ -135,28 +141,9 @@ class PollDelete(LoginRequiredMixin, DeleteView):
 @login_required
 @require_http_methods(['POST'])
 def invite(request, pk):
-    poll = Poll.objects.get(pk=pk)
     guests = request.POST.getlist('guest_list[]')
 
-    mails = []
-
-    for guest in guests:
-        guest_info = guest.split(' ')
-
-        name = ' '.join(guest_info[:-1])
-        email = guest_info[-1]
-        
-        try: 
-            guest = poll.guests.create(name=name, email=email)
-            mail_body = render_to_string('emails/invite.html', {'poll': poll, 'guest': guest, 'request': request})
-            mail = EmailMultiAlternatives('You got an invitation', mail_body, settings.EMAIL_HOST_USER, [email])
-            mail.attach_alternative(mail_body, 'text/html')
-            mails.append(mail)
-        except:
-            pass
-    
-    connection = get_connection()
-    connection.send_messages(mails)
+    invite_guests.delay(pk, guests, request.get_host())
     
     return redirect(reverse_lazy('polls:poll_detail', kwargs={'pk': pk}))
 
@@ -182,7 +169,7 @@ def add_guest(request, pk=None):
             '?' + query_string)
         
 
-
+@require_http_methods(['POST'])
 def get_guest(request, poll_pk=None, guest_pk=None):
     try:
         instance = Guest.objects.prefetch_related('votes').get(pk=guest_pk, poll_id=poll_pk)
@@ -213,14 +200,5 @@ def edit_guest_name(request, pk=None):
 @require_http_methods(['POST'])
 def contact(request):
     data = request.POST
-    mail_body = render_to_string('emails/contact.html', {'data': data})
-    mail = EmailMultiAlternatives(
-        'You got a new message from your website',
-        mail_body,
-        settings.EMAIL_HOST_USER,
-        (settings.ADMIN_EMAIL,),
-        reply_to=(data['email'],)
-    )
-    mail.attach_alternative(mail_body, 'text/html')
-    mail.send()
+    send_contact_message.delay(data)
     return JsonResponse({'status': 'ok'})
