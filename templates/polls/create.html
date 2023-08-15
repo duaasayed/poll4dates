@@ -18,7 +18,7 @@
                                 {% endfor %}
                             {% endif %}
                             <div class="row align-items-center justify-content-between">                                
-                                <div class="col-md-6">
+                                <div class="col-lg-6">
                                     <div class="mb-3">
                                         <label class="form-label">
                                             <i class="bi bi-bookmark" style="color: #71c55d;"></i>
@@ -82,7 +82,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-5 mt-0">
+                                <div class="col-lg-5 mt-0">
                                     <div class="mb-3 mt-md-0">
                                         <label class="form-label"><i class="bi bi-geo-alt-fill"
                                                 style="color: #71c55d"></i>
@@ -124,11 +124,11 @@
                 </div>
             </div>
             <div class="shadow p-3 mb-5 bg-white rounded row col-md-9 mx-auto">
-                <div class="col-md-8">
+                <div class="col-lg-8">
                     <p>Select dates to suggest for your event</p>
                     <div id='calendar'></div>
                 </div>
-                <div class="col-md-3 ml-md-5 mt-5 mt-md-0">
+                <div class="col-lg-3 ml-lg-5 mt-5 mt-md-0">
                     <p>You are suggesting:</p>
                     {% if request.session.timeslots %}
                         <div id="session-timeslots">
@@ -190,6 +190,11 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="p-3 mb-5 row col-md-9 mx-auto">
+                <button id="mobileEventbtn" class="btn-get-started scrollto float-end">Create Poll
+                    <i class="bi bi-caret-right-fill"></i>
+                </button>
             </div>
         </section>
     </main>
@@ -264,7 +269,8 @@
         }
         const closeBtn1 = document.getElementById('modalClose1');
         const addTimeBtn = document.getElementById('addTime');
-        const eventbtn = document.getElementById('eventbtn')
+        const eventbtn = document.getElementById('eventbtn');
+        const mobileEventbtn = document.getElementById('mobileEventbtn');
         const removeEvent = document.getElementById('removeEvent')
 
         closeBtn1.addEventListener('click', () => {
@@ -354,15 +360,31 @@
 
             new_timeslots.append(newtimeslot)
         });
-        eventbtn.addEventListener('click', e => {
-            e.preventDefault()
-            if (!document.getElementById('timeslots')) {
-                alert('Please, select date to suggest for your event.')
-            } else {
-                const form = document.getElementById('event-form')
-                form.submit()
-            }
-        });
+
+        if (eventbtn) {
+            eventbtn.addEventListener('click', e => {
+                e.preventDefault()
+                if (!document.getElementById('timeslots')) {
+                    alert('Please, select date to suggest for your event.')
+                } else {
+                    const form = document.getElementById('event-form')
+                    form.submit()
+                }
+            });
+        }
+
+        if (mobileEventbtn)  {
+            mobileEventbtn.addEventListener('click', e => {
+                e.preventDefault()
+                if (!document.getElementById('timeslots')) {
+                    alert('Please, select date to suggest for your event.')
+                } else {
+                    const form = document.getElementById('event-form')
+                    form.submit()
+                }
+            });
+        }
+        
 
         
 
