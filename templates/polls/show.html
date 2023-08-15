@@ -235,29 +235,29 @@
                 </div>
             </div>
             {% if user.is_authenticated and user == poll.creator and not poll.ended %}
-                <div class="accordion accordion-flush shadow rounded p-0 col-md-12 mx-auto d-flex mt-5"
+                <div class="accordion shadow rounded p-0 col-md-12 mx-auto d-flex mt-5"
                     id="accordionExample">
-                    <div class="col-md-6 p-3 text-center accordion-item" style=" border-right: 2px solid #71c55d;">
-                        <h3 class="accordion-header" id="flush-headingOne">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne"
+                    <div class="col-md-6 p-3 text-center accordion-item panel" style=" border-right: 2px solid #71c55d;">
+                        <h3 class="accordion-header" id="headingOne">
+                            <button id="btn1" class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"
                                 style="border: none; background-color: white;">
                                 Add Guests </button>
                         </h3>
 
                     </div>
-                    <div class="col-md-6 p-3 text-center accordion-item">
-                        <h3 class="accordion-header" id="flush-headingTwo">
+                    <div class="col-md-6 p-3 text-center accordion-item panel">
+                        <h3 class="accordion-header" id="headingTwo">
 
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo"
+                            <button id="btn2" class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo"
                                 style="border: none; background-color: white;">
                                 Share with link </button>
                         </h3>
                     </div>
                 </div>
                 <div class="card col-md-12 mx-auto shadow rounded mt-5 mb-5 p-5 shadow text-center accordion-collapse collapse"
-                    id="flush-collapseOne" data-bs-parent="#accordionExample">
+                    id="collapseOne" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                     <div class="accordion-body">
                         <h3>Add Guests</h3>
                         <p class="text-left">Enter your guest’s name and email address and we’ll send them an email
@@ -291,7 +291,7 @@
                     </div>
                 </div>
                 <div class="card col-md-12 mx-auto shadow rounded mt-5 mb-5 p-5 shadow text-center accordion-collapse collapse"
-                    id="flush-collapseTwo"  data-bs-parent="#accordionExample">
+                    id="collapseTwo" aria-labelledby="headingTwo"  data-bs-parent="#accordionExample">
                     <div class="accordion-body">
                         <h3>Share the poll with a link</h3>
                         <p class="text-left">Copy the shareable link and share it with your guests on social media,
@@ -474,6 +474,19 @@
         var guestEmail = document.getElementById('guest-email')
         var addGuest = document.getElementById('add-guest')
         var linkModal = document.getElementById('linkModal')
+        var collapseOne = document.getElementById('collapseOne')
+        var collapseTwo = document.getElementById('collapseTwo')
+        var btn1 = document.getElementById('btn1')
+        var btn2 = document.getElementById('btn2')
+
+        btn1.addEventListener('click', function () {
+            console.log('fuckkkkkkk')
+            collapseTwo.classList.remove('show')
+        })
+
+        btn2.addEventListener('click', function () {
+            collapseOne.classList.remove('show')
+        })
 
 
         const voteSocket = new WebSocket(
