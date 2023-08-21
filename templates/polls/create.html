@@ -171,11 +171,11 @@
                                 <div class="row justify-content-between mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Start Date:</label>
-                                        <input type="time" id="start" class="form-control">
+                                        <input type="time" id="start" class="form-control" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">End Date:</label>
-                                        <input type="time" id="end" class="form-control">
+                                        <input type="time" id="end" class="form-control" required>
                                     </div>
                                 </div>
                             </div>
@@ -213,7 +213,6 @@
         selectable: true,
         selectMirror: true,
         dateClick: function (info) {
-            console.log(info.dateStr)
             var options = { weekday: 'short', month: 'short', day: 'numeric' };
             var datef = new Date(info.dateStr);
             d.innerText = datef.toLocaleDateString("en-US", options)
@@ -233,7 +232,6 @@
             btn.parentElement.remove()
         },
         eventDidMount: (cell) => {
-            console.log(cell)
             var checkbox = document.createElement('input')
             checkbox.type = 'checkbox'
             checkbox.setAttribute('id', 'date-' + calendar.getDate())
@@ -244,6 +242,8 @@
     })
     document.addEventListener('DOMContentLoaded', function () {
         calendar.render();
+        document.getElementById('start').setAttribute('required', '')
+        document.getElementById('end').setAttribute('required', '')
         var session_timeslots = document.getElementById('session-timeslots')
         if (session_timeslots && session_timeslots.children) {
             const form = document.getElementById('event-form')
@@ -279,16 +279,16 @@
         });
         addTimeBtn.addEventListener('click', e => {
             e.preventDefault()
+            
             var start = document.getElementById('start').value
             var end = document.getElementById('end').value
-            if (start || end) {
+            if (start && end) {
                 const newEvent = {
                     'title': start,
                     'start': raw_d.innerText,
                 }
                 events.push(newEvent)
                 calendar.addEvent(newEvent)
-                console.log(calendar.getEvents())
                 const eventModal = document.getElementById('eventModal')
                 eventModal.style.display = 'none';
             }
@@ -302,7 +302,8 @@
             form.append(timeSlot)
 
             const new_timeslots = document.getElementById('new-timeslots')
-            const newtimeslot = document.createElement('div')
+            if  (start && end) {
+                const newtimeslot = document.createElement('div')
             newtimeslot.setAttribute('class', 'card p-3 mb-3 rounded d-flex flex-row')
             newtimeslot.setAttribute('style', 'border: 1px solid #71c55d;')
 
@@ -344,7 +345,7 @@
             var closebtn = document.createElement('button')
             closebtn.setAttribute('class', 'close')
             closebtn.setAttribute('type', 'button')
-            closebtn.setAttribute('id', raw_d.innerText + ',' + start)
+            closebtn.setAttribute('id', raw_d.innerText + ',' + start + ',' + end )
             closebtn.setAttribute('onclick', 'removeEvent(this)')
             closebtn.setAttribute('style', 'background:none; border:none; font-size: 25px')
             closebtn.innerHTML = '&times;'
@@ -359,6 +360,8 @@
             newtimeslot.append(closebtn)
 
             new_timeslots.append(newtimeslot)
+            }
+            
         });
 
         if (eventbtn) {
@@ -407,6 +410,13 @@
             if (event.title == start && event.startStr == date) {
                 event.remove()
                 element.parentElement.remove()
+            }
+        });
+
+        const inputElements = document.querySelectorAll('input');
+        inputElements.forEach((inputElement) => {
+            if (inputElement.value === element.id) {
+                inputElement.remove();
             }
         });
     }
