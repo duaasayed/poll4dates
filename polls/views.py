@@ -105,6 +105,10 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
         if '_method' in post_data and post_data['_method'] == 'put':
             data = {k:v for k,v in post_data.items() if k not in ['csrfmiddlewaretoken', '_method']}
             poll = Poll.objects.get(guid=self.kwargs[self.uuid_url_kwarg])
+            success_url = reverse_lazy('polls:poll_detail', kwargs={'guid': poll.guid})
+
+            if poll.ended and 'close' not in data and 'rsvp_by' not in data:
+                return redirect(success_url, {'poll': poll})
             
             if 'close' in data:
                 poll.rsvp_by = datetime.now().strftime("%Y-%m-%dT%H:%M")
@@ -128,7 +132,6 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
                         notify_guests_with_changes.delay(poll.pk, 're-opened')                
 
               
-        success_url = reverse_lazy('polls:poll_detail', kwargs={'guid': poll.guid})
         return redirect(success_url, {'poll': poll})
     
 
