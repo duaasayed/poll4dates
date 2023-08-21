@@ -36,8 +36,8 @@ def notify_guests_with_changes(pk, event):
 
 
 @shared_task
-def invite_guests(pk, guests, host):
-    poll = Poll.objects.get(pk=pk)
+def invite_guests(guid, guests, host):
+    poll = Poll.objects.get(guid=guid)
 
     mails = []
 
@@ -55,13 +55,8 @@ def invite_guests(pk, guests, host):
             mails.append(mail)
             connection = get_connection()
             connection.send_messages(mails)
-        except Exception as e:
+        except:
             pass
-    
-    
-
-
-
 @shared_task
 def send_contact_message(data):
     mail_body = render_to_string('emails/contact.html', {'data': data})

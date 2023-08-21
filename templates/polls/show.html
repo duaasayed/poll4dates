@@ -19,7 +19,7 @@
                                 </button>
                             </div>
 
-                            <form id="guest-form" method="post" action="{% url 'polls:add_guest' poll.pk %}">
+                            <form id="guest-form" method="post" action="{% url 'polls:add_guest' poll.guid %}">
                                 {% csrf_token %}
                                 
                                 <div class="modal-body">
@@ -187,8 +187,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                
-                                {% elif message.content_type.model == 'guest' and request.GET.gid|to_int == message.sender_id %}
+                                {% elif message.content_type.model == 'guest' and request.GET.gid == message.content_sender.guid|to_str %}
                                     <div class="col-md-12">
                                         <div class="col-md-9 mb-3" style="float: right;">
                                             <p>{{message.content_sender.name}}</p>
@@ -269,7 +268,7 @@
                             ann@email.com, Ron ron.w@email.com, etc.
 
                         </p>
-                        <form id="addGuestForm" method="post" action="{% url 'polls:invite' poll.pk %}">
+                        <form id="addGuestForm" method="post" action="{% url 'polls:invite' poll.guid %}">
                             <div class="row justify-content-between">
                                 {% csrf_token %}
                                 <input id="guest-list" type="hidden" name="guest_list">
@@ -299,9 +298,9 @@
                         </p>
                         <div class="col-md-6 mx-auto">
                             <div style="background-color: #D3D3D3;" class="p-4 text-left rounded">
-                                <a href="{% url 'polls:poll_detail' poll.pk %}?invite={{poll.token}}">
+                                <a href="{% url 'polls:poll_detail' poll.guid %}?invite={{poll.token}}">
                                     <p id="toshare">Please mark your availability for: {{poll}}<br>
-                                        http://{{request.get_host}}{% url 'polls:poll_detail' poll.pk %}?invite={{poll.token}}
+                                        http://{{request.get_host}}{% url 'polls:poll_detail' poll.guid %}?invite={{poll.token}}
                                     </p>
                                 </a>
                             </div>
@@ -459,7 +458,8 @@
         var event_location = "{{poll.event_location}}";
         var event_rsvp = "{{poll.rsvp_by}}";
         var slots = '{{poll.time_slots.all|queryset_as_json}}';
-        var delete_url = "{% url 'polls:delete' poll.pk %}";
+        var delete_url = "{% url 'polls:delete' poll.guid %}";
+        var poll_guid = "{{poll.guid}}"
         var poll_pk = "{{poll.pk}}";
         var messagebtn = document.getElementById('message');
         var messages = document.getElementById('messages');
@@ -479,27 +479,26 @@
         var btn1 = document.getElementById('btn1')
         var btn2 = document.getElementById('btn2')
 
-        btn1.addEventListener('click', function () {
-            console.log('fuckkkkkkk')
-            collapseTwo.classList.remove('show')
-        })
-
-        btn2.addEventListener('click', function () {
-            collapseOne.classList.remove('show')
-        })
-
+        if (btn1 && btn2) {
+            btn1.addEventListener('click', function () {
+                console.log('fuckkkkkkk')
+                collapseTwo.classList.remove('show')
+            })
+    
+            btn2.addEventListener('click', function () {
+                collapseOne.classList.remove('show')
+            })
+        }
 
         const voteSocket = new WebSocket(
-            `ws://${window.location.host}/ws/voting/${poll_pk}/`
+            `ws://${window.location.host}/ws/voting/${poll_guid}/`
         )
 
         document.addEventListener("DOMContentLoaded", function () {
             messages.scrollTop = messages.scrollHeight;
             const chatSocket = new WebSocket(
-                `ws://${window.location.host}/ws/chat/${poll_pk}/`
+                `ws://${window.location.host}/ws/chat/${poll_guid}/`
             );
-
-            
 
             chatSocket.onmessage = function(e) {
                 const data = JSON.parse(e.data);
@@ -507,7 +506,7 @@
                 var color = null;
                 var float = 'right';
                 
-                if (guest && sender.model == 'polls.guest' && sender.pk == guest_id) {
+                if (guest && sender.model == 'polls.guest' && sender.fields.guid == guest_id) {
                     color = '#71c55d';
                 } else if (sender.model == 'accounts.user' && guest == null) {
                     color = '#71c55d';
@@ -540,7 +539,7 @@
                 var voters_count = document.getElementById('voters-count')
                 var tick = document.getElementById(`tick-slot-${timeslot}-guest-${data.voter_id}`)
 
-                if (parseInt(guest_id) == data.voter_id)
+                if (guest_id == data.voter_id)
                 {
                     if (data.vote_method == 'calendar')
                     {
@@ -591,13 +590,15 @@
                         new_voters += `</span><br>`
                     }
                 })
+                
+                if (waiting && voters) {
+                    waiting.innerHTML = new_waiting
+                    voters.innerHTML = new_voters
 
-                waiting.innerHTML = new_waiting
-                voters.innerHTML = new_voters
-
-                waiting_count.innerText = `On waiting (${waiting_guests.length}):`
-                voters_count.innerText = `Voted (${voted_guests.length})`
-
+                    waiting_count.innerText = `On waiting (${waiting_guests.length}):`
+                    voters_count.innerText = `Voted (${voted_guests.length})`
+                }
+                
                 if (tick ) {
                     if (tick.style.display == "none") {
                         tick.style.display = "block"
@@ -607,8 +608,11 @@
                     
                 } else {
                     var slot = document.getElementById(`slot-${timeslot}-guest-${data.voter_id}`)
-                    console.log(slot)
-                    slot.innerHTML = `<i id="tick-slot-${timeslot}-guest-${data.voter_id}" class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>`
+                    if (slot) 
+                    {
+                        slot.innerHTML = `<i id="tick-slot-${timeslot}-guest-${data.voter_id}" class="bi bi-check-lg fa-2x" style="color:#71c55d;"></i>`
+                    
+                    }
                 }
             }
 
@@ -624,7 +628,7 @@
             var guest_name = document.getElementById('guest_name')
 
             if (guest_id) {
-                axios.get(`http://${window.location.host}/polls/{{poll.pk}}/guests/${guest_id}/`).then(data => {
+                axios.get(`http://${window.location.host}/polls/{{poll.guid}}/guests/${guest_id}/`).then(data => {
                     try {
                         guest = JSON.parse(data.data.guest)[0]
                         votes = JSON.parse(data.data.votes)
@@ -658,11 +662,11 @@
                 const text_message = messageInput.value;
                 var sender = null;
                 var sender_type = null;
-
+                console.log(`guest: ${guest}`)
 
                 if (!guest && "{{user.is_authenticated}}" == "True")
                 {
-                    sender = "{{poll.creator.id}}"
+                    sender = "{{poll.creator.guid}}"
                     sender_type = 'user'
                 }
 
@@ -671,10 +675,11 @@
                 }
 
                 else {
-                    sender = guest.pk
+                    sender = guest.fields.guid
+                    console.log(sender)
                     sender_type = 'guest'
                 }
-
+                console.log(`sender: ${sender}`)
                 if (sender) {
                     chatSocket.send(JSON.stringify({
                         'message': text_message,
@@ -742,7 +747,7 @@
 
             voteSocket.send(JSON.stringify({
                 'timeslot_id': parseInt(timeslot),
-                'guest_id': parseInt(guest_id),
+                'guest_id': guest_id,
                 'vote_method': 'checkbox'
             }));
         }

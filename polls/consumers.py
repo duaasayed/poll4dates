@@ -7,7 +7,7 @@ from django.core import serializers
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['pk']
+        self.room_name = self.scope['url_route']['kwargs']['guid']
         self.room_group_name = f"chat_{self.room_name}"
 
         async_to_sync(self.channel_layer.group_add)(
@@ -24,15 +24,16 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
-        sender = int(text_data_json['sender'])
+        sender = text_data_json['sender']
         sender_type = text_data_json['sender_type']
 
         if sender_type == 'user':
-            sender = User.objects.get(pk=sender)
+            sender = User.objects.get(guid=sender)
         else:
-            sender = Guest.objects.get(pk=sender)
+            sender = Guest.objects.get(guid=sender)
 
-        Message.objects.create(poll_id=int(self.room_name), content_sender=sender, content=message)
+        poll = Poll.objects.get(guid=self.room_name)
+        Message.objects.create(poll=poll, content_sender=sender, content=message)
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, {
@@ -51,7 +52,7 @@ class ChatConsumer(WebsocketConsumer):
 
 class VotingConsumer(WebsocketConsumer):
     def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['pk']
+        self.room_name = self.scope['url_route']['kwargs']['guid']
         self.room_group_name = f"poll-{self.room_name}"
 
         async_to_sync(self.channel_layer.group_add)(
@@ -72,7 +73,8 @@ class VotingConsumer(WebsocketConsumer):
         guest_id = text_data_json['guest_id']
         vote_method = text_data_json['vote_method']
 
-        vote, created = timeslot.votes.get_or_create(guest_id=guest_id)
+        guest = Guest.objects.get(guid=guest_id)
+        vote, created = timeslot.votes.get_or_create(guest=guest)
         if not created:
             vote.delete()
 

@@ -1,3 +1,5 @@
+from typing import Any, Optional
+from django.db import models
 from .models import Poll, Guest
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from django.views.generic.edit import FormView
@@ -43,7 +45,7 @@ class PollCreate(FormView):
             del self.request.session['form_data']
             del self.request.session['timeslots']
        
-        success_url = reverse_lazy('polls:poll_detail', kwargs={'pk': poll.pk})
+        success_url = reverse_lazy('polls:poll_detail', kwargs={'guid': poll.guid})
         return redirect(success_url, {'poll': poll})
 
 
@@ -63,6 +65,7 @@ class PollDetail(DetailView):
     template_name='polls/show.html'
     context_object_name = 'poll'
     login_url = reverse_lazy('account_login')
+    uuid_url_kwarg = 'guid'
 
     def get_queryset(self):
         current_user = self.request.user
@@ -78,10 +81,11 @@ class PollDetail(DetailView):
         if not invite and not gid:
             if not request.user.is_authenticated:
                 return redirect_to_login(request.get_full_path(), self.login_url)
+        
         try:
-            poll_pk = self.kwargs[self.pk_url_kwarg]
+            poll_guid = self.kwargs[self.uuid_url_kwarg]
             queryset = self.get_queryset()
-            poll = queryset.get(pk=poll_pk) if not invite else queryset.get(pk=poll_pk, token=invite)
+            poll = queryset.get(guid=poll_guid) if not invite else queryset.get(guid=poll_guid, token=invite)
             return render(request, 'polls/show.html', {'poll': poll})
         except:
             return render(request, '404.html')
@@ -91,9 +95,10 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
     model = Poll
     template_name = "polls/show.html"
     fields = ['event_name', 'event_details', 'event_location', 'rsvp_by']
+    uuid_url_kwarg = 'guid'
     
     def get(self, request, *args, **kwargs):
-        poll_url = reverse_lazy('polls:poll_detail', kwargs={'pk': self.kwargs[self.pk_url_kwarg]})
+        poll_url = reverse_lazy('polls:poll_detail', kwargs={'guid': self.kwargs[self.uuid_url_kwarg]})
         return redirect(poll_url)
 
     def post(self, *args, **kwargs):
@@ -101,7 +106,7 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
 
         if '_method' in post_data and post_data['_method'] == 'put':
             data = {k:v for k,v in post_data.items() if k not in ['csrfmiddlewaretoken', '_method']}
-            poll = Poll.objects.get(pk=self.get_object().pk)
+            poll = Poll.objects.get(guid=self.kwargs[self.uuid_url_kwarg])
             
             if 'close' in data:
                 poll.rsvp_by = datetime.now().strftime("%Y-%m-%dT%H:%M")
@@ -125,54 +130,59 @@ class PollUpdate(LoginRequiredMixin, UpdateView):
                         notify_guests_with_changes.delay(poll.pk, 're-opened')                
 
               
-        success_url = reverse_lazy('polls:poll_detail', kwargs={'pk': poll.pk})
+        success_url = reverse_lazy('polls:poll_detail', kwargs={'guid': poll.guid})
         return redirect(success_url, {'poll': poll})
     
 
 class PollDelete(LoginRequiredMixin, DeleteView):
     model = Poll
     success_url = reverse_lazy('polls:my_polls')
+    uuid_url_kwarg = 'guid'
+
+    def get_object(self):
+        return self.get_queryset().get(guid=self.kwargs[self.uuid_url_kwarg])
 
     def get(self, request, *args, **kwargs):
-        poll_url = reverse_lazy('polls:poll_detail', kwargs={'pk': self.kwargs[self.pk_url_kwarg]})
+        poll_url = reverse_lazy('polls:poll_detail', kwargs={'guid': self.kwargs[self.uuid_url_kwarg]})
         return redirect(poll_url)
     
 
 @login_required
 @require_http_methods(['POST'])
-def invite(request, pk):
+def invite(request, guid):
     guests = request.POST.getlist('guest_list[]')
 
-    invite_guests.delay(pk, guests, request.get_host())
+    invite_guests.delay(guid, guests, request.get_host())
     
-    return redirect(reverse_lazy('polls:poll_detail', kwargs={'pk': pk}))
+    return redirect(reverse_lazy('polls:poll_detail', kwargs={'guid': guid}))
 
 
 @require_http_methods(['POST'])
-def add_guest(request, pk=None):
+def add_guest(request, guid=None):
     guest_name = request.POST.get('name')
     guest_email = request.POST.get('email')
     guest_email = guest_email if guest_email else None
-    poll = Poll.objects.get(pk=pk)
+    poll = Poll.objects.get(guid=guid)
 
     try:
         guest = poll.guests.create(name=guest_name, email=guest_email)
-        params = {'gid': guest.pk}
+        params = {'gid': guest.guid}
         query_string = urlencode(params)
-        return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': pk}) + 
+        return redirect(reverse_lazy('polls:poll_detail' , kwargs={'guid': guid}) + 
             '?' + query_string)
     except:
         params = {'invite': poll.token}
         query_string = urlencode(params)
         messages.error(request, 'Name or Email is already exist for another guest')
-        return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': pk}) + 
+        return redirect(reverse_lazy('polls:poll_detail' , kwargs={'guid': guid}) + 
             '?' + query_string)
         
 
-@require_http_methods(['POST'])
-def get_guest(request, poll_pk=None, guest_pk=None):
+@require_http_methods(['GET'])
+def get_guest(request, poll_guid=None, guest_guid=None):
     try:
-        instance = Guest.objects.prefetch_related('votes').get(pk=guest_pk, poll_id=poll_pk)
+        poll = Poll.objects.get(guid=poll_guid)
+        instance = Guest.objects.prefetch_related('votes').get(guid=guest_guid, poll=poll)
         guest = serializers.serialize('json', [instance])
         votes = serializers.serialize('json', instance.votes.all())
         return JsonResponse({'guest': guest, 'votes': votes})
@@ -181,9 +191,9 @@ def get_guest(request, poll_pk=None, guest_pk=None):
     
 
 @require_http_methods(['POST'])
-def edit_guest_name(request, pk=None):
+def edit_guest_name(request, guid=None):
     new_name = request.POST.get('name')
-    guest = Guest.objects.get(pk=pk)
+    guest = Guest.objects.select_related('poll').get(guid=guid)
 
     try:
         guest.name = new_name
@@ -191,9 +201,9 @@ def edit_guest_name(request, pk=None):
     except:
         messages.error(request, 'This name belongs to another guest. Please, choose a valid name')
     finally:
-        params = {'gid': pk}
+        params = {'gid': guid}
         query_string = urlencode(params)
-        return redirect(reverse_lazy('polls:poll_detail' , kwargs={'pk': guest.poll_id}) + 
+        return redirect(reverse_lazy('polls:poll_detail' , kwargs={'guid': guest.poll.guid}) + 
         '?' + query_string)
 
 

@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from django.db import transaction
 import pytz
 from django.urls import reverse
+import uuid
 
 
 def generate_token(length):
@@ -22,6 +23,7 @@ def str_to_date(string):
 
 
 class Poll(models.Model):
+    guid = models.UUIDField(default=uuid.uuid1, db_index=True) 
     creator = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='polls')
     event_name = models.CharField(max_length=225)
     event_organizer = models.CharField(max_length=225)
@@ -117,11 +119,15 @@ class TimeSlot(models.Model):
     start = models.TimeField()
     end = models.TimeField()
 
+    def __str__(self):
+        return f'{self.day}@{self.start}-{self.end}'
+
     @property
     def votes_count(self):
         return self.votes.count()
 
 class Guest(models.Model):
+    guid = models.UUIDField(default=uuid.uuid1, db_index=True)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='guests')
     name = models.CharField(max_length=225)
     email = models.EmailField(max_length=250, blank=False, null=True)

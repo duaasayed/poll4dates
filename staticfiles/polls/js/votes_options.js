@@ -34,13 +34,13 @@ if (calendarbtn) {
                 cell.el.children[0].children[0].append(checkbox)
                 checkbox.value = cell.event.id
                 console.log(guest)
+                var choice = document.getElementById(`choice-${cell.event.id}`)
                 if (votes) {
                     votes.forEach(vote => {
                         if ((parseInt(vote.fields.time_slot) == cell.event.id)) {
                             checkbox.checked = true
                         }
 
-                        var choice = document.getElementById(`choice-${cell.event.id}`)
                         checkbox.checked = choice.checked
                     })
                     checkbox.addEventListener('change', () => {
@@ -53,7 +53,7 @@ if (calendarbtn) {
 
                         voteSocket.send(JSON.stringify({
                             'timeslot_id': parseInt(timeslot),
-                            'guest_id': parseInt(guest_id),
+                            'guest_id': guest_id,
                             'vote_method': 'calendar'
                         }));
 
@@ -82,7 +82,9 @@ if (calendarbtn) {
 
 if (tablebtn) {
     tablebtn.addEventListener('click', () => {
-        document.getElementById('calendar').classList.add('d-none')
+        if (calendarbtn) {
+            document.getElementById('calendar').classList.add('d-none')
+        }
         document.getElementById('table-body').classList.remove('d-none')
         document.getElementById('votes-body').classList.add('d-none')
     })
