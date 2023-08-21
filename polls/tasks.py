@@ -57,6 +57,8 @@ def invite_guests(guid, guests, host):
             connection.send_messages(mails)
         except:
             pass
+
+
 @shared_task
 def send_contact_message(data):
     mail_body = render_to_string('emails/contact.html', {'data': data})
