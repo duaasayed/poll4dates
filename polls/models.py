@@ -31,7 +31,7 @@ class Poll(models.Model):
     event_details = models.CharField(max_length=350, blank=True, null=True)
     event_timezone = models.CharField(max_length=225)
     rsvp_by = models.DateTimeField()
-    token = models.CharField(max_length=8, null=True)
+    token = models.CharField(max_length=8, default=generate_token(8))
 
     def __str__(self):
         return self.event_name
@@ -62,8 +62,6 @@ class Poll(models.Model):
 
 
     def save(self, *args, **kwargs):
-        self.token = generate_token(8)
-
         super().save(*args, **kwargs)
 
         rsvp_by = None

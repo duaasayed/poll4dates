@@ -1,5 +1,3 @@
-from typing import Any, Optional
-from django.db import models
 from .models import Poll, Guest
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from django.views.generic.edit import FormView
