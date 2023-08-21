@@ -1,5 +1,4 @@
 document.addEventListener('click', function (e) {
-    console.log(e.target.id)
     if (e.target.id != 'options') {
         var optionsdiv = document.getElementById('options-div')
         optionsdiv.classList.add('d-none')
@@ -77,7 +76,6 @@ if (removeDate) {
         openModal()
         editModalLabel('Remove Date/Time')
         //document.getElementById('edit-form').action = ""
-        console.log(JSON.parse(slots)[0])
         var div = createDiv('mb-3')
         JSON.parse(slots).forEach(slot => {
             var input = createInput('checkbox', 'timeslots[]', slot.pk, '')

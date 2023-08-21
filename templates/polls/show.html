@@ -481,7 +481,6 @@
 
         if (btn1 && btn2) {
             btn1.addEventListener('click', function () {
-                console.log('fuckkkkkkk')
                 collapseTwo.classList.remove('show')
             })
     
@@ -530,7 +529,6 @@
 
             voteSocket.onmessage = function(e) {
                 const data = JSON.parse(e.data)
-                console.log(data)
                 var timeslot = data.timeslot
                 var timeslotDiv = document.getElementById(`choice-${timeslot}`)
                 var voters = document.getElementById('voters')
@@ -632,7 +630,6 @@
                     try {
                         guest = JSON.parse(data.data.guest)[0]
                         votes = JSON.parse(data.data.votes)
-                        console.log(guest)
                         guest_name.innerText = guest.fields.name
                         votes.forEach(vote => {
                             timeslot = document.getElementById('choice-' + vote.fields.time_slot)
@@ -662,7 +659,6 @@
                 const text_message = messageInput.value;
                 var sender = null;
                 var sender_type = null;
-                console.log(`guest: ${guest}`)
 
                 if (!guest && "{{user.is_authenticated}}" == "True")
                 {
@@ -676,10 +672,8 @@
 
                 else {
                     sender = guest.fields.guid
-                    console.log(sender)
                     sender_type = 'guest'
                 }
-                console.log(`sender: ${sender}`)
                 if (sender) {
                     chatSocket.send(JSON.stringify({
                         'message': text_message,
@@ -721,8 +715,7 @@
             var closeLinkModal = document.getElementById('closeLinkModal')
             if (vote_link) {
                 vote_link.addEventListener('click', () => {
-                    console.log('test')
-                    custom_link = 'http://{{request.get_host}}/polls/{{poll.pk}}/?gid=' + guest_id + '/'
+                    custom_link = 'http://{{request.get_host}}/polls/{{poll.guid}}/?gid=' + guest_id + '/'
                     linkModal.style.display = 'block'
                     document.getElementById('link').innerText = custom_link
                 })

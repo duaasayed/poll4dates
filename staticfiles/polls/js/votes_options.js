@@ -3,7 +3,9 @@ var calendarbtn = document.getElementById('calendar-op')
 var tablebtn = document.getElementById('table-op')
 
 votesbtn.addEventListener('click', () => {
-    document.getElementById('calendar').classList.add('d-none')
+    if (calendarbtn) {
+        document.getElementById('calendar').classList.add('d-none')
+    }
     if (tablebtn) {
         document.getElementById('table-body').classList.add('d-none')
     }
@@ -26,14 +28,12 @@ if (calendarbtn) {
 
             editable: true,
             eventDidMount: (cell) => {
-                console.log(cell.event)
                 var checkbox = document.createElement('input')
                 checkbox.type = 'checkbox'
                 checkbox.setAttribute('id', 'date-' + cell.event.id)
                 checkbox.setAttribute('style', 'transform: scale(1.5);accent-color:green')
                 cell.el.children[0].children[0].append(checkbox)
                 checkbox.value = cell.event.id
-                console.log(guest)
                 var choice = document.getElementById(`choice-${cell.event.id}`)
                 if (votes) {
                     votes.forEach(vote => {
@@ -64,16 +64,13 @@ if (calendarbtn) {
         })
         calendar.render()
         var timeslots = JSON.parse(slots)
-        console.log(timeslots)
         timeslots.forEach(timeslot => {
             var event = {
                 'id': timeslot.pk,
                 'title': timeslot.fields.start.split(':', 2).join(':'),
                 'start': timeslot.fields.day
             }
-            console.log(event)
             calendar.addEvent(event)
-            console.log(calendar.getEvents())
 
         });
     })
